@@ -65,8 +65,6 @@ public:
     }
 
     virtual std::set<DRC_CONSTRAINT_T> GetConstraintTypes() const override;
-
-    int GetNumPhases() const override;
 };
 
 
@@ -173,12 +171,6 @@ bool DRC_TEST_PROVIDER_CONNECTIVITY::Run()
     reportRuleStatistics();
 
     return true;
-}
-
-
-int DRC_TEST_PROVIDER_CONNECTIVITY::GetNumPhases() const
-{
-    return 3;
 }
 
 

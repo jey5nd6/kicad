@@ -67,6 +67,7 @@ enum PCB_DRC_CODE {
     DRCE_EXTRA_FOOTPRINT,                // netlist item not found for footprint
     DRCE_NET_CONFLICT,                   // pad net doesn't match netlist
 
+    DRCE_LIB_FOOTPRINT_ISSUES,
     DRCE_UNRESOLVED_VARIABLE,
     DRCE_SILK_MASK_CLEARANCE,            // silkscreen clipped by mask (potentially leaving it
                                          //   over pads, exposed copper, etc.)
@@ -161,6 +162,7 @@ private:
     static DRC_ITEM missingFootprint;
     static DRC_ITEM extraFootprint;
     static DRC_ITEM netConflict;
+    static DRC_ITEM libFootprintIssues;
     static DRC_ITEM unresolvedVariable;
     static DRC_ITEM silkMaskClearance;
     static DRC_ITEM silkOverlaps;

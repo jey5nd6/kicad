@@ -65,8 +65,6 @@ public:
 
     virtual std::set<DRC_CONSTRAINT_T> GetConstraintTypes() const override;
 
-    int GetNumPhases() const override;
-
 private:
     bool testFootprintCourtyardDefinitions();
 
@@ -261,12 +259,6 @@ bool DRC_TEST_PROVIDER_COURTYARD_CLEARANCE::Run()
        return false;
 
     return true;
-}
-
-
-int DRC_TEST_PROVIDER_COURTYARD_CLEARANCE::GetNumPhases() const
-{
-    return 2;
 }
 
 

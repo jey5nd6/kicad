@@ -2017,26 +2017,38 @@ bool FOOTPRINT::HasThroughHolePads() const
 }
 
 
+#define TEST( a, b ) { if( a != b ) return a < b; }
+
+
 bool FOOTPRINT::cmp_drawings::operator()( const BOARD_ITEM* aFirst,
                                           const BOARD_ITEM* aSecond ) const
 {
-    if( aFirst->Type() != aSecond->Type() )
-        return aFirst->Type() < aSecond->Type();
-
-    if( aFirst->GetLayer() != aSecond->GetLayer() )
-        return aFirst->GetLayer() < aSecond->GetLayer();
+    TEST( aFirst->Type(), aSecond->Type() );
+    TEST( aFirst->GetLayer(), aSecond->GetLayer() );
 
     if( aFirst->Type() == PCB_FP_SHAPE_T )
     {
         const FP_SHAPE* dwgA = static_cast<const FP_SHAPE*>( aFirst );
         const FP_SHAPE* dwgB = static_cast<const FP_SHAPE*>( aSecond );
 
-        if( dwgA->GetShape() != dwgB->GetShape() )
-            return dwgA->GetShape() < dwgB->GetShape();
+        TEST( dwgA->GetShape(), dwgB->GetShape() );
+
+        TEST( dwgA->GetStart0().x, dwgB->GetStart0().x );
+        TEST( dwgA->GetStart0().y, dwgB->GetStart0().y );
+        TEST( dwgA->GetEnd0().x, dwgB->GetEnd0().x );
+        TEST( dwgA->GetEnd0().y, dwgB->GetEnd0().y );
+        TEST( dwgA->GetThirdPoint0().x, dwgB->GetThirdPoint0().x );
+        TEST( dwgA->GetThirdPoint0().y, dwgB->GetThirdPoint0().y );
+        TEST( dwgA->GetBezier0_C1().x, dwgB->GetBezier0_C1().x );
+        TEST( dwgA->GetBezier0_C1().y, dwgB->GetBezier0_C1().y );
+        TEST( dwgA->GetBezier0_C2().x, dwgB->GetBezier0_C2().x );
+        TEST( dwgA->GetBezier0_C2().y, dwgB->GetBezier0_C2().y );
+
+        TEST( dwgA->GetAngle(), dwgB->GetAngle() );
+        TEST( dwgA->GetWidth(), dwgB->GetWidth() );
     }
 
-    if( aFirst->m_Uuid != aSecond->m_Uuid ) // shopuld be always the case foer valid boards
-        return aFirst->m_Uuid < aSecond->m_Uuid;
+    TEST( aFirst->m_Uuid, aSecond->m_Uuid );   // should be always the case for valid boards
 
     return aFirst < aSecond;
 }
@@ -2047,11 +2059,38 @@ bool FOOTPRINT::cmp_pads::operator()( const PAD* aFirst, const PAD* aSecond ) co
     if( aFirst->GetName() != aSecond->GetName() )
         return StrNumCmp( aFirst->GetName(), aSecond->GetName() ) < 0;
 
-    if( aFirst->m_Uuid != aSecond->m_Uuid ) // shopuld be always the case foer valid boards
-        return aFirst->m_Uuid < aSecond->m_Uuid;
+    TEST( aFirst->GetPos0().x, aSecond->GetPos0().x );
+    TEST( aFirst->GetPos0().y, aSecond->GetPos0().y );
+    TEST( aFirst->GetSize().x, aSecond->GetSize().x );
+    TEST( aFirst->GetSize().y, aSecond->GetSize().y );
+    TEST( aFirst->GetShape(), aSecond->GetShape() );
+
+    TEST( aFirst->m_Uuid, aSecond->m_Uuid );   // should be always the case for valid boards
 
     return aFirst < aSecond;
 }
+
+
+bool FOOTPRINT::cmp_zones::operator()( const FP_ZONE* aFirst, const FP_ZONE* aSecond ) const
+{
+    TEST( aFirst->GetPriority(), aSecond->GetPriority() );
+    TEST( aFirst->GetLayerSet().Seq(), aSecond->GetLayerSet().Seq() );
+
+    TEST( aFirst->Outline()->TotalVertices(), aSecond->Outline()->TotalVertices() );
+
+    for( int ii = 0; ii < aFirst->Outline()->TotalVertices(); ++ii )
+    {
+        TEST( aFirst->Outline()->CVertex( ii ).x, aSecond->Outline()->CVertex( ii ).x );
+        TEST( aFirst->Outline()->CVertex( ii ).y, aSecond->Outline()->CVertex( ii ).y );
+    }
+
+    TEST( aFirst->m_Uuid, aSecond->m_Uuid );   // should be always the case for valid boards
+
+    return aFirst < aSecond;
+}
+
+
+#undef TEST
 
 
 static struct FOOTPRINT_DESC

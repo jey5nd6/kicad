@@ -706,7 +706,7 @@ bool DIALOG_FOOTPRINT_PROPERTIES_FP_EDITOR::TransferDataFromWindow()
     case 3:  m_footprint->SetZoneConnection( ZONE_CONNECTION::NONE );      break;
     }
 
-    std::list<FP_3DMODEL>* draw3D  = &m_footprint->Models();
+    std::vector<FP_3DMODEL>* draw3D  = &m_footprint->Models();
     draw3D->clear();
     draw3D->insert( draw3D->end(), m_shapes3D_list.begin(), m_shapes3D_list.end() );
 

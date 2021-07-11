@@ -774,7 +774,7 @@ bool DIALOG_FOOTPRINT_PROPERTIES::TransferDataFromWindow()
     if( change_layer )
         m_footprint->Flip( m_footprint->GetPosition(), m_frame->Settings().m_FlipLeftRight );
 
-    std::list<FP_3DMODEL>* draw3D = &m_footprint->Models();
+    std::vector<FP_3DMODEL>* draw3D = &m_footprint->Models();
     draw3D->clear();
     draw3D->insert( draw3D->end(), m_shapes3D_list.begin(), m_shapes3D_list.end() );
 

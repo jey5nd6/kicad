@@ -70,8 +70,6 @@ public:
 
     virtual std::set<DRC_CONSTRAINT_T> GetConstraintTypes() const override;
 
-    int GetNumPhases() const override;
-
 private:
     bool testAgainstEdge( BOARD_ITEM* item, SHAPE* itemShape, BOARD_ITEM* other,
                           DRC_CONSTRAINT_T aConstraintType, PCB_DRC_CODE aErrorCode );
@@ -270,12 +268,6 @@ bool DRC_TEST_PROVIDER_EDGE_CLEARANCE::Run()
     reportRuleStatistics();
 
     return true;
-}
-
-
-int DRC_TEST_PROVIDER_EDGE_CLEARANCE::GetNumPhases() const
-{
-    return 1;
 }
 
 

@@ -47,6 +47,12 @@
 #include <tools/board_inspection_tool.h>
 #include <kiplatform/ui.h>
 
+// wxWidgets spends *far* too long calcuating column widths (most of it, believe it or
+// not, in repeatedly creating/destroying a wxDC to do the measurement in).
+// Use default column widths instead.
+static int DEFAULT_SINGLE_COL_WIDTH = 660;
+
+
 DIALOG_DRC::DIALOG_DRC( PCB_EDIT_FRAME* aEditorFrame, wxWindow* aParent ) :
         DIALOG_DRC_BASE( aParent ),
         PROGRESS_REPORTER( 1 ),
@@ -64,7 +70,7 @@ DIALOG_DRC::DIALOG_DRC( PCB_EDIT_FRAME* aEditorFrame, wxWindow* aParent ) :
 {
     SetName( DIALOG_DRC_WINDOW_NAME ); // Set a window name to be able to find it
 
-    m_frame    = aEditorFrame;
+    m_frame = aEditorFrame;
     m_currentBoard = m_frame->GetBoard();
 
     m_messages->SetImmediateMode();
@@ -77,6 +83,10 @@ DIALOG_DRC::DIALOG_DRC( PCB_EDIT_FRAME* aEditorFrame, wxWindow* aParent ) :
 
     m_footprintWarningsTreeModel = new RC_TREE_MODEL( m_frame, m_footprintsDataView );
     m_footprintsDataView->AssociateModel( m_footprintWarningsTreeModel );
+
+    m_ignoredList->InsertColumn( 0, wxEmptyString, wxLIST_FORMAT_LEFT, DEFAULT_SINGLE_COL_WIDTH );
+
+    m_Notebook->SetSelection( 0 );
 
     if( Kiface().IsSingle() )
         m_cbTestFootprints->Hide();
@@ -132,12 +142,12 @@ void DIALOG_DRC::initValues()
     m_markersTitleTemplate     = m_Notebook->GetPageText( 0 );
     m_unconnectedTitleTemplate = m_Notebook->GetPageText( 1 );
     m_footprintsTitleTemplate  = m_Notebook->GetPageText( 2 );
+    m_ignoredTitleTemplate     = m_Notebook->GetPageText( 3 );
 
     auto cfg = m_frame->GetPcbNewSettings();
 
     m_cbRefillZones->SetValue( cfg->m_DrcDialog.refill_zones );
     m_cbReportAllTrackErrors->SetValue( cfg->m_DrcDialog.test_all_track_errors );
-
 
     if( !Kiface().IsSingle() )
         m_cbTestFootprints->SetValue( cfg->m_DrcDialog.test_footprints );
@@ -242,6 +252,15 @@ void DIALOG_DRC::OnRunDRCClick( wxCommandEvent& aEvent )
     deleteAllMarkers( true );
     m_unconnectedTreeModel->DeleteItems( false, true, true );
     m_footprintWarningsTreeModel->DeleteItems( false, true, true );
+
+    std::vector<std::reference_wrapper<RC_ITEM>> violations = DRC_ITEM::GetItemsWithSeverities();
+    m_ignoredList->DeleteAllItems();
+
+    for( std::reference_wrapper<RC_ITEM>& item : violations )
+    {
+        if( bds().GetSeverity( item.get().GetErrorCode() ) == RPT_SEVERITY_IGNORE )
+            m_ignoredList->InsertItem( m_ignoredList->GetItemCount(), item.get().GetErrorText() );
+    }
 
     Raise();
 
@@ -599,6 +618,21 @@ void DIALOG_DRC::OnDRCItemRClick( wxDataViewEvent& aEvent )
 }
 
 
+void DIALOG_DRC::OnIgnoreItemRClick( wxListEvent& event )
+{
+    wxMenu menu;
+
+    menu.Append( 1, _( "Edit ignored violations..." ), _( "Open the Board Setup... dialog" ) );
+
+    switch( GetPopupMenuSelectionFromUser( menu ) )
+    {
+    case 1:
+        m_frame->ShowBoardSetupDialog( _( "Violation Severity" ) );
+        break;
+    }
+}
+
+
 void DIALOG_DRC::OnSeverity( wxCommandEvent& aEvent )
 {
     int flag = 0;
@@ -728,6 +762,7 @@ void DIALOG_DRC::PrevMarker()
         case 0: m_markersTreeModel->PrevMarker();           break;
         case 1: m_unconnectedTreeModel->PrevMarker();       break;
         case 2: m_footprintWarningsTreeModel->PrevMarker(); break;
+        case 3:                                             break;
         }
     }
 }
@@ -742,6 +777,7 @@ void DIALOG_DRC::NextMarker()
         case 0: m_markersTreeModel->NextMarker();           break;
         case 1: m_unconnectedTreeModel->NextMarker();       break;
         case 2: m_footprintWarningsTreeModel->NextMarker(); break;
+        case 3:                                             break;
         }
     }
 }
@@ -969,13 +1005,19 @@ void DIALOG_DRC::updateDisplayedCounts()
         m_Notebook->SetPageText( 1, msg );
 
         if( m_footprintTestsRun )
+        {
             msg.sprintf( m_footprintsTitleTemplate, numFootprints );
+        }
         else
         {
             msg = m_footprintsTitleTemplate;
             msg.Replace( wxT( "%d" ), _( "not run" ) );
         }
+
         m_Notebook->SetPageText( 2, msg );
+
+        msg.sprintf( m_ignoredTitleTemplate, m_ignoredList->GetItemCount() );
+        m_Notebook->SetPageText( 3, msg );
     }
     else
     {
@@ -990,6 +1032,10 @@ void DIALOG_DRC::updateDisplayedCounts()
         msg = m_footprintsTitleTemplate;
         msg.Replace( wxT( "(%d)" ), wxEmptyString );
         m_Notebook->SetPageText( 2, msg );
+
+        msg = m_ignoredTitleTemplate;
+        msg.Replace( wxT( "(%d)" ), wxEmptyString );
+        m_Notebook->SetPageText( 3, msg );
     }
 
     // Update badges:

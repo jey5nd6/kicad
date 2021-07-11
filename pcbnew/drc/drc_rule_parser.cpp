@@ -281,6 +281,8 @@ void DRC_RULES_PARSER::parseConstraint( DRC_RULE* aRule )
     case T_hole_to_hole:        constraint.m_Type = HOLE_TO_HOLE_CONSTRAINT;             break;
     case T_courtyard_clearance: constraint.m_Type = COURTYARD_CLEARANCE_CONSTRAINT;      break;
     case T_silk_clearance:      constraint.m_Type = SILK_CLEARANCE_CONSTRAINT;           break;
+    case T_text_height:         constraint.m_Type = TEXT_HEIGHT_CONSTRAINT;              break;
+    case T_text_thickness:      constraint.m_Type = TEXT_THICKNESS_CONSTRAINT;           break;
     case T_track_width:         constraint.m_Type = TRACK_WIDTH_CONSTRAINT;              break;
     case T_annular_width:       constraint.m_Type = ANNULAR_WIDTH_CONSTRAINT;            break;
     case T_disallow:            constraint.m_Type = DISALLOW_CONSTRAINT;                 break;

@@ -32,6 +32,8 @@
  * hole_clearance
  * silk_clearance
  * skew
+ * text_height
+ * text_thickness
  * track_width
  * via_count
 

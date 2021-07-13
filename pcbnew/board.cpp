@@ -274,6 +274,7 @@ void BOARD::Move( const wxPoint& aMoveVector )        // overload
         PCB_DIM_ALIGNED_T,
         PCB_DIM_ORTHOGONAL_T,
         PCB_DIM_CENTER_T,
+        PCB_DIM_RADIAL_T,
         PCB_DIM_LEADER_T,
         PCB_TARGET_T,
         PCB_VIA_T,
@@ -661,6 +662,7 @@ void BOARD::Add( BOARD_ITEM* aBoardItem, ADD_MODE aMode )
 
     case PCB_DIM_ALIGNED_T:
     case PCB_DIM_CENTER_T:
+    case PCB_DIM_RADIAL_T:
     case PCB_DIM_ORTHOGONAL_T:
     case PCB_DIM_LEADER_T:
     case PCB_SHAPE_T:
@@ -787,6 +789,7 @@ void BOARD::Remove( BOARD_ITEM* aBoardItem, REMOVE_MODE aRemoveMode )
 
     case PCB_DIM_ALIGNED_T:
     case PCB_DIM_CENTER_T:
+    case PCB_DIM_RADIAL_T:
     case PCB_DIM_ORTHOGONAL_T:
     case PCB_DIM_LEADER_T:
     case PCB_SHAPE_T:
@@ -1260,6 +1263,7 @@ SEARCH_RESULT BOARD::Visit( INSPECTOR inspector, void* testData, const KICAD_T s
         case PCB_TEXT_T:
         case PCB_DIM_ALIGNED_T:
         case PCB_DIM_CENTER_T:
+        case PCB_DIM_RADIAL_T:
         case PCB_DIM_ORTHOGONAL_T:
         case PCB_DIM_LEADER_T:
         case PCB_TARGET_T:
@@ -1274,6 +1278,7 @@ SEARCH_RESULT BOARD::Visit( INSPECTOR inspector, void* testData, const KICAD_T s
                 case PCB_TEXT_T:
                 case PCB_DIM_ALIGNED_T:
                 case PCB_DIM_CENTER_T:
+                case PCB_DIM_RADIAL_T:
                 case PCB_DIM_ORTHOGONAL_T:
                 case PCB_DIM_LEADER_T:
                 case PCB_TARGET_T:

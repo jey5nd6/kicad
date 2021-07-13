@@ -262,6 +262,7 @@ static struct EDA_ITEM_DESC
             .Map( PCB_DIM_ALIGNED_T,    _HKI( "Aligned Dimension" ) )
             .Map( PCB_DIM_ORTHOGONAL_T, _HKI( "Orthogonal Dimension" ) )
             .Map( PCB_DIM_CENTER_T,     _HKI( "Center Dimension" ) )
+            .Map( PCB_DIM_RADIAL_T,     _HKI( "Radial Dimension" ) )
             .Map( PCB_DIM_LEADER_T,     _HKI( "Leader" ) )
             .Map( PCB_TARGET_T,         _HKI( "Target" ) )
             .Map( PCB_ZONE_T,           _HKI( "Zone" ) )

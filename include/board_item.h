@@ -40,37 +40,6 @@ class PCB_BASE_FRAME;
 class SHAPE;
 class PCB_GROUP;
 
-/**
- * The set of shapes for PCB graphics and tracks and footprint graphics in the .m_Shape member
- */
-enum class PCB_SHAPE_TYPE : int
-{
-    SEGMENT = 0,  ///< usual segment : line with rounded ends
-    RECT,         ///< segment with non rounded ends
-    ARC,          ///< Arcs (with rounded ends)
-    CIRCLE,       ///< ring
-    POLYGON,      ///< polygon (not yet used for tracks, but could be in microwave apps)
-    CURVE,        ///< Bezier Curve
-    LAST          ///< last value for this list
-};
-
-static inline wxString PCB_SHAPE_TYPE_T_asString( PCB_SHAPE_TYPE a )
-{
-    switch( a )
-    {
-    case PCB_SHAPE_TYPE::SEGMENT: return "S_SEGMENT";
-    case PCB_SHAPE_TYPE::RECT:    return "S_RECT";
-    case PCB_SHAPE_TYPE::ARC:     return "S_ARC";
-    case PCB_SHAPE_TYPE::CIRCLE:  return "S_CIRCLE";
-    case PCB_SHAPE_TYPE::POLYGON: return "S_POLYGON";
-    case PCB_SHAPE_TYPE::CURVE:   return "S_CURVE";
-    case PCB_SHAPE_TYPE::LAST:    return "S_LAST";    // Synthetic value, but if we come across it we're
-                                                      // going to want to know.
-    }
-
-    return wxEmptyString;  // Just to quiet GCC.
-};
-
 
 /**
  * A base class for any item which can be embedded within the #BOARD container class, and
@@ -263,19 +232,13 @@ public:
     void DeleteStructure();
 
     /**
-     * Convert the enum #PCB_SHAPE_TYPE_T integer value to a wxString.
-     */
-    static wxString ShowShape( PCB_SHAPE_TYPE aShape );
-
-    /**
      * Move this object.
      *
      * @param aMoveVector the move vector for this object.
      */
     virtual void Move( const wxPoint& aMoveVector )
     {
-        wxFAIL_MSG( wxString::Format( wxT( "virtual BOARD_ITEM::Move called for %s" ),
-                                      GetClass() ) );
+        wxFAIL_MSG( "virtual BOARD_ITEM::Move called for " + GetClass() );
     }
 
     void Move( const VECTOR2I& aMoveVector )

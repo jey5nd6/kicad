@@ -806,7 +806,7 @@ void PCB_IO::format( const PCB_SHAPE* aShape, int aNestLevel ) const
 
     switch( aShape->GetShape() )
     {
-    case PCB_SHAPE_TYPE::SEGMENT: // Line
+    case EDA_SHAPE_TYPE::SEGMENT: // Line
         m_out->Print( aNestLevel, "(gr_line%s (start %s) (end %s)",
                      locked.c_str(),
                       FormatInternalUnits( aShape->GetStart() ).c_str(),
@@ -817,21 +817,21 @@ void PCB_IO::format( const PCB_SHAPE* aShape, int aNestLevel ) const
 
         break;
 
-    case PCB_SHAPE_TYPE::RECT: // Rectangle
+    case EDA_SHAPE_TYPE::RECT: // Rectangle
         m_out->Print( aNestLevel, "(gr_rect%s (start %s) (end %s)",
                       locked.c_str(),
                       FormatInternalUnits( aShape->GetStart() ).c_str(),
                       FormatInternalUnits( aShape->GetEnd() ).c_str() );
         break;
 
-    case PCB_SHAPE_TYPE::CIRCLE: // Circle
+    case EDA_SHAPE_TYPE::CIRCLE: // Circle
         m_out->Print( aNestLevel, "(gr_circle%s (center %s) (end %s)",
                       locked.c_str(),
                       FormatInternalUnits( aShape->GetStart() ).c_str(),
                       FormatInternalUnits( aShape->GetEnd() ).c_str() );
         break;
 
-    case PCB_SHAPE_TYPE::ARC: // Arc
+    case EDA_SHAPE_TYPE::ARC: // Arc
         m_out->Print( aNestLevel, "(gr_arc%s (start %s) (end %s) (angle %s)",
                       locked.c_str(),
                       FormatInternalUnits( aShape->GetStart() ).c_str(),
@@ -839,7 +839,7 @@ void PCB_IO::format( const PCB_SHAPE* aShape, int aNestLevel ) const
                       FormatAngle( aShape->GetAngle() ).c_str() );
         break;
 
-    case PCB_SHAPE_TYPE::POLYGON: // Polygon
+    case EDA_SHAPE_TYPE::POLYGON: // Polygon
         if( aShape->IsPolyShapeValid() )
         {
             const SHAPE_POLY_SET& poly = aShape->GetPolyShape();
@@ -903,7 +903,7 @@ void PCB_IO::format( const PCB_SHAPE* aShape, int aNestLevel ) const
 
         break;
 
-    case PCB_SHAPE_TYPE::CURVE: // Bezier curve
+    case EDA_SHAPE_TYPE::CURVE: // Bezier curve
         m_out->Print( aNestLevel, "(gr_curve%s (pts (xy %s) (xy %s) (xy %s) (xy %s))",
                       locked.c_str(),
                       FormatInternalUnits( aShape->GetStart() ).c_str(),
@@ -913,8 +913,7 @@ void PCB_IO::format( const PCB_SHAPE* aShape, int aNestLevel ) const
         break;
 
     default:
-        wxFAIL_MSG( "PCB_IO::format cannot format unknown PCB_SHAPE shape:"
-                    + PCB_SHAPE_TYPE_T_asString( aShape->GetShape()) );
+        wxFAIL_MSG( "PCB_IO::format not implemented for " + aShape->EDA_SHAPE_TYPE_asString() );
         return;
     };
 
@@ -923,9 +922,9 @@ void PCB_IO::format( const PCB_SHAPE* aShape, int aNestLevel ) const
     m_out->Print( 0, " (width %s)", FormatInternalUnits( aShape->GetWidth() ).c_str() );
 
     // The filled flag represents if a solid fill is present on circles, rectangles and polygons
-    if( ( aShape->GetShape() == PCB_SHAPE_TYPE::POLYGON )
-        || ( aShape->GetShape() == PCB_SHAPE_TYPE::RECT )
-        || ( aShape->GetShape() == PCB_SHAPE_TYPE::CIRCLE ) )
+    if( ( aShape->GetShape() == EDA_SHAPE_TYPE::POLYGON )
+        || ( aShape->GetShape() == EDA_SHAPE_TYPE::RECT )
+        || ( aShape->GetShape() == EDA_SHAPE_TYPE::CIRCLE ) )
     {
         if( aShape->IsFilled() )
             m_out->Print( 0, " (fill solid)" );
@@ -945,28 +944,28 @@ void PCB_IO::format( const FP_SHAPE* aFPShape, int aNestLevel ) const
 
     switch( aFPShape->GetShape() )
     {
-    case PCB_SHAPE_TYPE::SEGMENT: // Line
+    case EDA_SHAPE_TYPE::SEGMENT: // Line
         m_out->Print( aNestLevel, "(fp_line%s (start %s) (end %s)",
                       locked.c_str(),
                       FormatInternalUnits( aFPShape->GetStart0() ).c_str(),
                       FormatInternalUnits( aFPShape->GetEnd0() ).c_str() );
         break;
 
-    case PCB_SHAPE_TYPE::RECT: // Rectangle
+    case EDA_SHAPE_TYPE::RECT: // Rectangle
         m_out->Print( aNestLevel, "(fp_rect%s (start %s) (end %s)",
                       locked.c_str(),
                       FormatInternalUnits( aFPShape->GetStart0() ).c_str(),
                       FormatInternalUnits( aFPShape->GetEnd0() ).c_str() );
         break;
 
-    case PCB_SHAPE_TYPE::CIRCLE: // Circle
+    case EDA_SHAPE_TYPE::CIRCLE: // Circle
         m_out->Print( aNestLevel, "(fp_circle%s (center %s) (end %s)",
                       locked.c_str(),
                       FormatInternalUnits( aFPShape->GetStart0() ).c_str(),
                       FormatInternalUnits( aFPShape->GetEnd0() ).c_str() );
         break;
 
-    case PCB_SHAPE_TYPE::ARC: // Arc
+    case EDA_SHAPE_TYPE::ARC: // Arc
         m_out->Print( aNestLevel, "(fp_arc%s (start %s) (end %s) (angle %s)",
                       locked.c_str(),
                       FormatInternalUnits( aFPShape->GetStart0() ).c_str(),
@@ -974,7 +973,7 @@ void PCB_IO::format( const FP_SHAPE* aFPShape, int aNestLevel ) const
                       FormatAngle( aFPShape->GetAngle() ).c_str() );
         break;
 
-    case PCB_SHAPE_TYPE::POLYGON: // Polygonal segment
+    case EDA_SHAPE_TYPE::POLYGON: // Polygonal segment
         if( aFPShape->IsPolyShapeValid() )
         {
             const SHAPE_POLY_SET& poly = aFPShape->GetPolyShape();
@@ -1028,7 +1027,7 @@ void PCB_IO::format( const FP_SHAPE* aFPShape, int aNestLevel ) const
         }
         break;
 
-    case PCB_SHAPE_TYPE::CURVE: // Bezier curve
+    case EDA_SHAPE_TYPE::CURVE: // Bezier curve
         m_out->Print( aNestLevel, "(fp_curve%s (pts (xy %s) (xy %s) (xy %s) (xy %s))",
                       locked.c_str(),
                       FormatInternalUnits( aFPShape->GetStart0() ).c_str(),
@@ -1038,8 +1037,7 @@ void PCB_IO::format( const FP_SHAPE* aFPShape, int aNestLevel ) const
         break;
 
     default:
-        wxFAIL_MSG( "PCB_IO::format cannot format unknown FP_SHAPE shape:"
-                    + PCB_SHAPE_TYPE_T_asString( aFPShape->GetShape() ) );
+        wxFAIL_MSG( "PCB_IO::format not implemented for " + aFPShape->EDA_SHAPE_TYPE_asString() );
         return;
     };
 
@@ -1048,9 +1046,9 @@ void PCB_IO::format( const FP_SHAPE* aFPShape, int aNestLevel ) const
     m_out->Print( 0, " (width %s)", FormatInternalUnits( aFPShape->GetWidth() ).c_str() );
 
     // The filled flag represents if a solid fill is present on circles, rectangles and polygons
-    if( ( aFPShape->GetShape() == PCB_SHAPE_TYPE::POLYGON )
-        || ( aFPShape->GetShape() == PCB_SHAPE_TYPE::RECT )
-        || ( aFPShape->GetShape() == PCB_SHAPE_TYPE::CIRCLE ) )
+    if( ( aFPShape->GetShape() == EDA_SHAPE_TYPE::POLYGON )
+        || ( aFPShape->GetShape() == EDA_SHAPE_TYPE::RECT )
+        || ( aFPShape->GetShape() == EDA_SHAPE_TYPE::CIRCLE ) )
     {
         if( aFPShape->IsFilled() )
             m_out->Print( 0, " (fill solid)" );
@@ -1622,32 +1620,32 @@ void PCB_IO::format( const PAD* aPad, int aNestLevel ) const
 
             switch( primitive->GetShape() )
             {
-            case PCB_SHAPE_TYPE::SEGMENT: // usual segment : line with rounded ends
+            case EDA_SHAPE_TYPE::SEGMENT: // usual segment : line with rounded ends
                 m_out->Print( nested_level, "(gr_line (start %s) (end %s)",
                               FormatInternalUnits( primitive->GetStart() ).c_str(),
                               FormatInternalUnits( primitive->GetEnd() ).c_str() );
                 break;
 
-            case PCB_SHAPE_TYPE::RECT:
+            case EDA_SHAPE_TYPE::RECT:
                 m_out->Print( nested_level, "(gr_rect (start %s) (end %s)",
                               FormatInternalUnits( primitive->GetStart() ).c_str(),
                               FormatInternalUnits( primitive->GetEnd() ).c_str() );
                 break;
 
-            case PCB_SHAPE_TYPE::ARC: // Arc with rounded ends
+            case EDA_SHAPE_TYPE::ARC: // Arc with rounded ends
                 m_out->Print( nested_level, "(gr_arc (start %s) (end %s) (angle %s)",
                               FormatInternalUnits( primitive->GetStart() ).c_str(),
                               FormatInternalUnits( primitive->GetEnd() ).c_str(),
                               FormatAngle( primitive->GetAngle() ).c_str() );
                 break;
 
-            case PCB_SHAPE_TYPE::CIRCLE: //  ring or circle (circle if width == 0
+            case EDA_SHAPE_TYPE::CIRCLE: //  ring or circle (circle if width == 0
                 m_out->Print( nested_level, "(gr_circle (center %s) (end %s)",
                               FormatInternalUnits( primitive->GetStart() ).c_str(),
                               FormatInternalUnits( primitive->GetEnd() ).c_str() );
                 break;
 
-            case PCB_SHAPE_TYPE::CURVE: //  Bezier Curve
+            case EDA_SHAPE_TYPE::CURVE: //  Bezier Curve
                 m_out->Print( nested_level, "(gr_curve (pts (xy %s) (xy %s) (xy %s) (xy %s))",
                               FormatInternalUnits( primitive->GetStart() ).c_str(),
                               FormatInternalUnits( primitive->GetBezControl1() ).c_str(),
@@ -1655,7 +1653,7 @@ void PCB_IO::format( const PAD* aPad, int aNestLevel ) const
                               FormatInternalUnits( primitive->GetEnd() ).c_str() );
                 break;
 
-            case PCB_SHAPE_TYPE::POLYGON: // polygon
+            case EDA_SHAPE_TYPE::POLYGON: // polygon
                 if( primitive->GetPolyShape().COutline( 0 ).CPoints().size() < 2 )
                     break;      // Malformed polygon.
 

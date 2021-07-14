@@ -27,7 +27,7 @@
 
 #include <board_item_container.h>
 #include <common.h> // Needed for stl hash extensions
-#include <convert_drawsegment_list_to_polygon.h> // for OUTLINE_ERROR_HANDLER
+#include <convert_shape_list_to_polygon.h> // for OUTLINE_ERROR_HANDLER
 #include <layers_id_colors_and_visibility.h>
 #include <netinfo.h>
 #include <pcb_item_containers.h>

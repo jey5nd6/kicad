@@ -149,29 +149,29 @@ bool DRC_TEST_PROVIDER_EDGE_CLEARANCE::Run()
             {
                 PCB_SHAPE* shape = static_cast<PCB_SHAPE*>( item );
 
-                if( shape->GetShape() == PCB_SHAPE_TYPE::RECT )
+                if( shape->GetShape() == EDA_SHAPE_TYPE::RECT )
                 {
                     // A single rectangle for the board would make the RTree useless, so
                     // convert to 4 edges
                     edges.emplace_back( static_cast<PCB_SHAPE*>( shape->Clone() ) );
-                    edges.back()->SetShape( PCB_SHAPE_TYPE::SEGMENT );
+                    edges.back()->SetShape( EDA_SHAPE_TYPE::SEGMENT );
                     edges.back()->SetEndX( shape->GetStartX() );
                     edges.back()->SetWidth( 0 );
                     edges.emplace_back( static_cast<PCB_SHAPE*>( shape->Clone() ) );
-                    edges.back()->SetShape( PCB_SHAPE_TYPE::SEGMENT );
+                    edges.back()->SetShape( EDA_SHAPE_TYPE::SEGMENT );
                     edges.back()->SetEndY( shape->GetStartY() );
                     edges.back()->SetWidth( 0 );
                     edges.emplace_back( static_cast<PCB_SHAPE*>( shape->Clone() ) );
-                    edges.back()->SetShape( PCB_SHAPE_TYPE::SEGMENT );
+                    edges.back()->SetShape( EDA_SHAPE_TYPE::SEGMENT );
                     edges.back()->SetStartX( shape->GetEndX() );
                     edges.back()->SetWidth( 0 );
                     edges.emplace_back( static_cast<PCB_SHAPE*>( shape->Clone() ) );
-                    edges.back()->SetShape( PCB_SHAPE_TYPE::SEGMENT );
+                    edges.back()->SetShape( EDA_SHAPE_TYPE::SEGMENT );
                     edges.back()->SetStartY( shape->GetEndY() );
                     edges.back()->SetWidth( 0 );
                     return true;
                 }
-                else if( shape->GetShape() == PCB_SHAPE_TYPE::POLYGON )
+                else if( shape->GetShape() == EDA_SHAPE_TYPE::POLYGON )
                 {
                     // Same for polygons
                     SHAPE_LINE_CHAIN poly = shape->GetPolyShape().Outline( 0 );
@@ -180,7 +180,7 @@ bool DRC_TEST_PROVIDER_EDGE_CLEARANCE::Run()
                     {
                         SEG seg = poly.CSegment( ii );
                         edges.emplace_back( static_cast<PCB_SHAPE*>( shape->Clone() ) );
-                        edges.back()->SetShape( PCB_SHAPE_TYPE::SEGMENT );
+                        edges.back()->SetShape( EDA_SHAPE_TYPE::SEGMENT );
                         edges.back()->SetStart((wxPoint) seg.A );
                         edges.back()->SetEnd((wxPoint) seg.B );
                         edges.back()->SetWidth( 0 );

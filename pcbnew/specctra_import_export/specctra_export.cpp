@@ -726,7 +726,7 @@ IMAGE* SPECCTRA_DB::makeIMAGE( BOARD* aBoard, FOOTPRINT* aFootprint )
 
         switch( graphic->GetShape() )
         {
-        case PCB_SHAPE_TYPE::SEGMENT:
+        case EDA_SHAPE_TYPE::SEGMENT:
             outline = new SHAPE( image, T_outline );
 
             image->Append( outline );
@@ -739,7 +739,7 @@ IMAGE* SPECCTRA_DB::makeIMAGE( BOARD* aBoard, FOOTPRINT* aFootprint )
             path->AppendPoint( mapPt( graphic->GetEnd0() ) );
             break;
 
-        case PCB_SHAPE_TYPE::CIRCLE:
+        case EDA_SHAPE_TYPE::CIRCLE:
             {
                 // this is best done by 4 QARC's but freerouter does not yet support QARCs.
                 // for now, support by using line segments.
@@ -767,7 +767,7 @@ IMAGE* SPECCTRA_DB::makeIMAGE( BOARD* aBoard, FOOTPRINT* aFootprint )
             }
             break;
 
-        case PCB_SHAPE_TYPE::RECT:
+        case EDA_SHAPE_TYPE::RECT:
             {
             outline = new SHAPE( image, T_outline );
 
@@ -791,7 +791,7 @@ IMAGE* SPECCTRA_DB::makeIMAGE( BOARD* aBoard, FOOTPRINT* aFootprint )
             }
             break;
 
-        case PCB_SHAPE_TYPE::ARC:
+        case EDA_SHAPE_TYPE::ARC:
             {
                 // this is best done by QARC's but freerouter does not yet support QARCs.
                 // for now, support by using line segments.

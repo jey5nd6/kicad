@@ -1109,7 +1109,7 @@ PAD* CADSTAR_PCB_ARCHIVE_LOADER::getKiCadPad( const COMPONENT_PAD& aCadstarPad, 
                                                        ERROR_LOC::ERROR_INSIDE );
 
             PCB_SHAPE* padShape = new PCB_SHAPE;
-            padShape->SetShape( PCB_SHAPE_TYPE::POLYGON );
+            padShape->SetShape( EDA_SHAPE_TYPE::POLYGON );
             padShape->SetFilled( true );
             padShape->SetPolyShape( padOutline );
             padShape->SetWidth( 0 );
@@ -1971,7 +1971,7 @@ void CADSTAR_PCB_ARCHIVE_LOADER::loadCoppers()
                 {
                     SHAPE_POLY_SET segment;
 
-                    if( seg->GetShape() == PCB_SHAPE_TYPE::ARC )
+                    if( seg->GetShape() == EDA_SHAPE_TYPE::ARC )
                     {
                         TransformArcToPolygon( segment, seg->GetStart(), seg->GetArcMid(),
                                                seg->GetEnd(), copperWidth, ARC_HIGH_DEF,
@@ -2614,12 +2614,12 @@ void CADSTAR_PCB_ARCHIVE_LOADER::drawCadstarShape( const SHAPE& aCadstarShape,
 
         if( isFootprint( aContainer ) )
         {
-            shape = new FP_SHAPE( (FOOTPRINT*) aContainer, PCB_SHAPE_TYPE::POLYGON );
+            shape = new FP_SHAPE( (FOOTPRINT*) aContainer, EDA_SHAPE_TYPE::POLYGON );
         }
         else
         {
             shape = new PCB_SHAPE( aContainer );
-            shape->SetShape( PCB_SHAPE_TYPE::POLYGON );
+            shape->SetShape( EDA_SHAPE_TYPE::POLYGON );
         }
 
         shape->SetFilled( true );
@@ -2741,12 +2741,12 @@ PCB_SHAPE* CADSTAR_PCB_ARCHIVE_LOADER::getDrawSegmentFromVertex( const POINT& aC
 
         if( isFootprint( aContainer ) )
         {
-            ds = new FP_SHAPE( static_cast<FOOTPRINT*>( aContainer ), PCB_SHAPE_TYPE::SEGMENT );
+            ds = new FP_SHAPE( static_cast<FOOTPRINT*>( aContainer ), EDA_SHAPE_TYPE::SEGMENT );
         }
         else
         {
             ds = new PCB_SHAPE( aContainer );
-            ds->SetShape( PCB_SHAPE_TYPE::SEGMENT );
+            ds->SetShape( EDA_SHAPE_TYPE::SEGMENT );
         }
 
         ds->SetStart( startPoint );
@@ -2763,16 +2763,16 @@ PCB_SHAPE* CADSTAR_PCB_ARCHIVE_LOADER::getDrawSegmentFromVertex( const POINT& aC
 
         if( isFootprint( aContainer ) )
         {
-            ds = new FP_SHAPE( (FOOTPRINT*) aContainer, PCB_SHAPE_TYPE::ARC );
+            ds = new FP_SHAPE( (FOOTPRINT*) aContainer, EDA_SHAPE_TYPE::ARC );
         }
         else
         {
             ds = new PCB_SHAPE( aContainer );
-            ds->SetShape( PCB_SHAPE_TYPE::ARC );
+            ds->SetShape( EDA_SHAPE_TYPE::ARC );
         }
 
         ds->SetArcStart( startPoint );
-        ds->SetCenter( centerPoint );
+        ds->SetArcCenter( centerPoint );
 
         arcStartAngle = getPolarAngle( startPoint - centerPoint );
         arcEndAngle   = getPolarAngle( endPoint - centerPoint );
@@ -2911,7 +2911,7 @@ SHAPE_LINE_CHAIN CADSTAR_PCB_ARCHIVE_LOADER::getLineChainFromDrawsegments( const
     {
         switch( ds->GetShape() )
         {
-        case PCB_SHAPE_TYPE::ARC:
+        case EDA_SHAPE_TYPE::ARC:
         {
             if( ds->GetClass() == wxT( "MGRAPHIC" ) )
             {
@@ -2926,7 +2926,7 @@ SHAPE_LINE_CHAIN CADSTAR_PCB_ARCHIVE_LOADER::getLineChainFromDrawsegments( const
             }
         }
         break;
-        case PCB_SHAPE_TYPE::SEGMENT:
+        case EDA_SHAPE_TYPE::SEGMENT:
             if( ds->GetClass() == wxT( "MGRAPHIC" ) )
             {
                 FP_SHAPE* em = (FP_SHAPE*) ds;
@@ -2993,7 +2993,7 @@ std::vector<PCB_TRACK*> CADSTAR_PCB_ARCHIVE_LOADER::makeTracksFromDrawsegments(
     {
         switch( ds->GetShape() )
         {
-        case PCB_SHAPE_TYPE::ARC:
+        case EDA_SHAPE_TYPE::ARC:
             if( ds->GetClass() == wxT( "MGRAPHIC" ) )
             {
                 FP_SHAPE* em = (FP_SHAPE*) ds;
@@ -3006,7 +3006,7 @@ std::vector<PCB_TRACK*> CADSTAR_PCB_ARCHIVE_LOADER::makeTracksFromDrawsegments(
                 track = new PCB_ARC( aParentContainer, &arc );
             }
             break;
-        case PCB_SHAPE_TYPE::SEGMENT:
+        case EDA_SHAPE_TYPE::SEGMENT:
             if( ds->GetClass() == wxT( "MGRAPHIC" ) )
             {
                 FP_SHAPE* em = (FP_SHAPE*) ds;

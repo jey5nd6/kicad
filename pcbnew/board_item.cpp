@@ -32,21 +32,6 @@
 #include <wx/msgdlg.h>
 
 
-wxString BOARD_ITEM::ShowShape( PCB_SHAPE_TYPE aShape )
-{
-    switch( aShape )
-    {
-    case PCB_SHAPE_TYPE::SEGMENT: return _( "Line" );
-    case PCB_SHAPE_TYPE::RECT:    return _( "Rect" );
-    case PCB_SHAPE_TYPE::ARC:     return _( "Arc" );
-    case PCB_SHAPE_TYPE::CIRCLE:  return _( "Circle" );
-    case PCB_SHAPE_TYPE::CURVE:   return _( "Bezier Curve" );
-    case PCB_SHAPE_TYPE::POLYGON: return _( "Polygon" );
-    default:                      return wxT( "??" );
-    }
-}
-
-
 BOARD* BOARD_ITEM::GetBoard() const
 {
     if( Type() == PCB_T )

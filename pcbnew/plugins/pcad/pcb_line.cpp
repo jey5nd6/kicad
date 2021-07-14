@@ -120,7 +120,7 @@ void PCB_LINE::AddToFootprint( FOOTPRINT* aFootprint )
 {
     if( IsNonCopperLayer( m_KiCadLayer ) )
     {
-        FP_SHAPE* segment = new FP_SHAPE( aFootprint, PCB_SHAPE_TYPE::SEGMENT );
+        FP_SHAPE* segment = new FP_SHAPE( aFootprint, EDA_SHAPE_TYPE::SEGMENT );
         aFootprint->Add( segment );
 
         segment->m_Start0   = wxPoint( m_positionX, m_positionY );

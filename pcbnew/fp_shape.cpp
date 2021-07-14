@@ -37,11 +37,9 @@
 #include <view/view.h>
 
 
-FP_SHAPE::FP_SHAPE( FOOTPRINT* parent, PCB_SHAPE_TYPE aShape ) :
-        PCB_SHAPE( parent, PCB_FP_SHAPE_T )
+FP_SHAPE::FP_SHAPE( FOOTPRINT* parent, EDA_SHAPE_TYPE aShape ) :
+        PCB_SHAPE( parent, PCB_FP_SHAPE_T, aShape )
 {
-    m_shape = aShape;
-    m_angle = 0;
     m_layer = F_SilkS;
 }
 
@@ -122,7 +120,7 @@ void FP_SHAPE::GetMsgPanelInfo( EDA_DRAW_FRAME* aFrame, std::vector<MSG_PANEL_IT
 wxString FP_SHAPE::GetSelectMenuText( EDA_UNITS aUnits ) const
 {
     return wxString::Format( _( "%s on %s" ),
-                             ShowShape( m_shape  ),
+                             ShowShape(),
                              GetLayerName() );
 }
 
@@ -161,15 +159,15 @@ void FP_SHAPE::Flip( const wxPoint& aCentre, bool aFlipLeftRight )
 
     switch( GetShape() )
     {
-    case PCB_SHAPE_TYPE::ARC:
+    case EDA_SHAPE_TYPE::ARC:
         // Update arc angle but do not yet update m_ThirdPoint0 and m_thirdPoint,
         // arc center and start point must be updated before calculation arc end.
         SetAngle( -GetAngle(), false );
         KI_FALLTHROUGH;
 
     default:
-    case PCB_SHAPE_TYPE::SEGMENT:
-    case PCB_SHAPE_TYPE::CURVE:
+    case EDA_SHAPE_TYPE::SEGMENT:
+    case EDA_SHAPE_TYPE::CURVE:
         // If Start0 and Start are equal (ie: Footprint Editor), then flip both sets around the
         // centre point.
         if( m_start == m_Start0 )
@@ -205,7 +203,7 @@ void FP_SHAPE::Flip( const wxPoint& aCentre, bool aFlipLeftRight )
         RebuildBezierToSegmentsPointsList( m_width );
         break;
 
-    case PCB_SHAPE_TYPE::POLYGON:
+    case EDA_SHAPE_TYPE::POLYGON:
         // polygon corners coordinates are relative to the footprint position, orientation 0
         m_poly.Mirror( aFlipLeftRight, !aFlipLeftRight );
         break;
@@ -228,15 +226,15 @@ void FP_SHAPE::Mirror( const wxPoint& aCentre, bool aMirrorAroundXAxis )
 
     switch( GetShape() )
     {
-    case PCB_SHAPE_TYPE::ARC:
+    case EDA_SHAPE_TYPE::ARC:
         // Update arc angle but do not yet update m_ThirdPoint0 and m_thirdPoint,
         // arc center and start point must be updated before calculation arc end.
         SetAngle( -GetAngle(), false );
         KI_FALLTHROUGH;
 
     default:
-    case PCB_SHAPE_TYPE::CURVE:
-    case PCB_SHAPE_TYPE::SEGMENT:
+    case EDA_SHAPE_TYPE::CURVE:
+    case EDA_SHAPE_TYPE::SEGMENT:
         if( aMirrorAroundXAxis )
         {
             MIRROR( m_Start0.y, aCentre.y );
@@ -264,7 +262,7 @@ void FP_SHAPE::Mirror( const wxPoint& aCentre, bool aMirrorAroundXAxis )
 
         break;
 
-    case PCB_SHAPE_TYPE::POLYGON:
+    case EDA_SHAPE_TYPE::POLYGON:
         // polygon corners coordinates are always relative to the
         // footprint position, orientation 0
         m_poly.Mirror( !aMirrorAroundXAxis, aMirrorAroundXAxis );
@@ -301,7 +299,7 @@ void FP_SHAPE::Move( const wxPoint& aMoveVector )
     default:
         break;
 
-    case PCB_SHAPE_TYPE::POLYGON:
+    case EDA_SHAPE_TYPE::POLYGON:
         // polygon corners coordinates are always relative to the
         // footprint position, orientation 0
         m_poly.Move( VECTOR2I( aMoveVector ) );

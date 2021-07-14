@@ -464,7 +464,7 @@ FOOTPRINT* GPCB_FPL_CACHE::parseFOOTPRINT( LINE_READER* aLineReader )
 
             FP_SHAPE* shape = new FP_SHAPE( footprint.get() );
             shape->SetLayer( F_SilkS );
-            shape->SetShape( PCB_SHAPE_TYPE::SEGMENT );
+            shape->SetShape( EDA_SHAPE_TYPE::SEGMENT );
             shape->SetStart0( wxPoint( parseInt( parameters[2], conv_unit ),
                                        parseInt( parameters[3], conv_unit ) ) );
             shape->SetEnd0( wxPoint( parseInt( parameters[4], conv_unit ),
@@ -488,7 +488,7 @@ FOOTPRINT* GPCB_FPL_CACHE::parseFOOTPRINT( LINE_READER* aLineReader )
             // Pcbnew does know ellipse so we must have Width = Height
             FP_SHAPE* shape = new FP_SHAPE( footprint.get() );
             shape->SetLayer( F_SilkS );
-            shape->SetShape( PCB_SHAPE_TYPE::ARC );
+            shape->SetShape( EDA_SHAPE_TYPE::ARC );
             footprint->Add( shape );
 
             // for and arc: ibuf[3] = ibuf[4]. Pcbnew does not know ellipses
@@ -508,7 +508,7 @@ FOOTPRINT* GPCB_FPL_CACHE::parseFOOTPRINT( LINE_READER* aLineReader )
 
             // Geda PCB does not support circles.
             if( sweep_angle == -3600.0 )
-                shape->SetShape( PCB_SHAPE_TYPE::CIRCLE );
+                shape->SetShape( EDA_SHAPE_TYPE::CIRCLE );
 
             // Angle value is clockwise in gpcb and Pcbnew.
             shape->SetAngle( sweep_angle );

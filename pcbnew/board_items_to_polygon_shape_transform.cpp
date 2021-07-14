@@ -419,8 +419,8 @@ void PCB_TEXT::TransformShapeWithClearanceToPolygon( SHAPE_POLY_SET& aCornerBuff
 }
 
 
-void PCB_SHAPE::TransformShapeWithClearanceToPolygon( SHAPE_POLY_SET& aCornerBuffer,
-                                                      PCB_LAYER_ID aLayer, int aClearanceValue,
+void EDA_SHAPE::TransformShapeWithClearanceToPolygon( SHAPE_POLY_SET& aCornerBuffer,
+                                                      int aClearanceValue,
                                                       int aError, ERROR_LOC aErrorLoc,
                                                       bool ignoreLineWidth ) const
 {
@@ -430,20 +430,20 @@ void PCB_SHAPE::TransformShapeWithClearanceToPolygon( SHAPE_POLY_SET& aCornerBuf
 
     switch( m_shape )
     {
-    case PCB_SHAPE_TYPE::CIRCLE:
+    case EDA_SHAPE_TYPE::CIRCLE:
         if( IsFilled() )
         {
-            TransformCircleToPolygon( aCornerBuffer, GetCenter(), GetRadius() + width / 2, aError,
+            TransformCircleToPolygon( aCornerBuffer, getCenter(), GetRadius() + width / 2, aError,
                                       aErrorLoc );
         }
         else
         {
-            TransformRingToPolygon( aCornerBuffer, GetCenter(), GetRadius(), width, aError,
+            TransformRingToPolygon( aCornerBuffer, getCenter(), GetRadius(), width, aError,
                                     aErrorLoc );
         }
         break;
 
-    case PCB_SHAPE_TYPE::RECT:
+    case EDA_SHAPE_TYPE::RECT:
     {
         std::vector<wxPoint> pts = GetRectCorners();
 
@@ -466,27 +466,23 @@ void PCB_SHAPE::TransformShapeWithClearanceToPolygon( SHAPE_POLY_SET& aCornerBuf
     }
         break;
 
-    case PCB_SHAPE_TYPE::ARC:
+    case EDA_SHAPE_TYPE::ARC:
         TransformArcToPolygon( aCornerBuffer, GetArcStart(), GetArcMid(), GetArcEnd(), width,
                                aError, aErrorLoc );
         break;
 
-    case PCB_SHAPE_TYPE::SEGMENT:
+    case EDA_SHAPE_TYPE::SEGMENT:
         TransformOvalToPolygon( aCornerBuffer, m_start, m_end, width, aError, aErrorLoc );
         break;
 
-    case PCB_SHAPE_TYPE::POLYGON:
+    case EDA_SHAPE_TYPE::POLYGON:
     {
         if( !IsPolyShapeValid() )
             break;
 
         // The polygon is expected to be a simple polygon; not self intersecting, no hole.
-        FOOTPRINT* footprint = GetParentFootprint();
-        double     orientation = footprint ? footprint->GetOrientation() : 0.0;
-        wxPoint    offset;
-
-        if( footprint )
-            offset = footprint->GetPosition();
+        double  orientation = getParentOrientation();
+        wxPoint offset = getParentPosition();
 
         // Build the polygon with the actual position and orientation:
         std::vector<wxPoint> poly;
@@ -521,7 +517,7 @@ void PCB_SHAPE::TransformShapeWithClearanceToPolygon( SHAPE_POLY_SET& aCornerBuf
     }
         break;
 
-    case PCB_SHAPE_TYPE::CURVE: // Bezier curve
+    case EDA_SHAPE_TYPE::CURVE: // Bezier curve
     {
         std::vector<wxPoint> ctrlPoints = { m_start, m_bezierC1, m_bezierC2, m_end };
         BEZIER_POLY converter( ctrlPoints );
@@ -536,10 +532,20 @@ void PCB_SHAPE::TransformShapeWithClearanceToPolygon( SHAPE_POLY_SET& aCornerBuf
         break;
 
     default:
-        wxFAIL_MSG( "PCB_SHAPE::TransformShapeWithClearanceToPolygon no implementation for "
-                    + PCB_SHAPE_TYPE_T_asString( m_shape ) );
+        wxFAIL_MSG( "EDA_SHAPE::TransformShapeWithClearanceToPolygon not implemented for "
+                    + EDA_SHAPE_TYPE_asString() );
         break;
     }
+}
+
+
+void PCB_SHAPE::TransformShapeWithClearanceToPolygon( SHAPE_POLY_SET& aCornerBuffer,
+                                                      PCB_LAYER_ID aLayer, int aClearanceValue,
+                                                      int aError, ERROR_LOC aErrorLoc,
+                                                      bool ignoreLineWidth ) const
+{
+    EDA_SHAPE::TransformShapeWithClearanceToPolygon( aCornerBuffer, aClearanceValue, aError,
+                                                     aErrorLoc, ignoreLineWidth );
 }
 
 

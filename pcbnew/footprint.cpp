@@ -45,7 +45,7 @@
 #include <view/view.h>
 #include <geometry/shape_null.h>
 #include <i18n_utility.h>
-#include <convert_drawsegment_list_to_polygon.h>
+#include <convert_shape_list_to_polygon.h>
 #include <geometry/convex_hull.h>
 
 FOOTPRINT::FOOTPRINT( BOARD* parent ) :
@@ -1805,14 +1805,14 @@ double FOOTPRINT::GetCoverageArea( const BOARD_ITEM* aItem, const GENERAL_COLLEC
 
         switch( shape->GetShape() )
         {
-        case PCB_SHAPE_TYPE::SEGMENT:
-        case PCB_SHAPE_TYPE::ARC:
-        case PCB_SHAPE_TYPE::CURVE:
+        case EDA_SHAPE_TYPE::SEGMENT:
+        case EDA_SHAPE_TYPE::ARC:
+        case EDA_SHAPE_TYPE::CURVE:
             return shape->GetWidth() * shape->GetWidth();
 
-        case PCB_SHAPE_TYPE::RECT:
-        case PCB_SHAPE_TYPE::CIRCLE:
-        case PCB_SHAPE_TYPE::POLYGON:
+        case EDA_SHAPE_TYPE::RECT:
+        case EDA_SHAPE_TYPE::CIRCLE:
+        case EDA_SHAPE_TYPE::POLYGON:
         {
             if( !shape->IsFilled() )
                 return shape->GetWidth() * shape->GetWidth();

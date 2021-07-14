@@ -51,7 +51,7 @@
 #include <project/project_local_settings.h>
 #include <ratsnest/ratsnest_data.h>
 #include <tool/selection_conditions.h>
-#include <convert_drawsegment_list_to_polygon.h>
+#include <convert_shape_list_to_polygon.h>
 #include <wx/log.h>
 
 // This is an odd place for this, but CvPcb won't link if it's in board_item.cpp like I first

@@ -631,7 +631,7 @@ void BOARD_ADAPTER::addShapeWithClearance( const PCB_SHAPE* aShape,
 
     switch( aShape->GetShape() )
     {
-    case PCB_SHAPE_TYPE::CIRCLE:
+    case EDA_SHAPE_TYPE::CIRCLE:
     {
         const SFVEC2F center3DU( aShape->GetCenter().x * m_biuTo3Dunits,
                                  -aShape->GetCenter().y * m_biuTo3Dunits );
@@ -649,7 +649,7 @@ void BOARD_ADAPTER::addShapeWithClearance( const PCB_SHAPE* aShape,
     }
         break;
 
-    case PCB_SHAPE_TYPE::RECT:
+    case EDA_SHAPE_TYPE::RECT:
         if( aShape->IsFilled() )
         {
             SHAPE_POLY_SET polyList;
@@ -681,7 +681,7 @@ void BOARD_ADAPTER::addShapeWithClearance( const PCB_SHAPE* aShape,
         }
         break;
 
-    case PCB_SHAPE_TYPE::ARC:
+    case EDA_SHAPE_TYPE::ARC:
     {
         unsigned int segCount = GetCircleSegmentCount( aShape->GetBoundingBox().GetSizeMax() );
 
@@ -690,7 +690,7 @@ void BOARD_ADAPTER::addShapeWithClearance( const PCB_SHAPE* aShape,
     }
     break;
 
-    case PCB_SHAPE_TYPE::SEGMENT:
+    case EDA_SHAPE_TYPE::SEGMENT:
     {
         const SFVEC2F start3DU( aShape->GetStart().x * m_biuTo3Dunits,
                                 -aShape->GetStart().y * m_biuTo3Dunits );
@@ -711,8 +711,8 @@ void BOARD_ADAPTER::addShapeWithClearance( const PCB_SHAPE* aShape,
     }
     break;
 
-    case PCB_SHAPE_TYPE::CURVE:
-    case PCB_SHAPE_TYPE::POLYGON:
+    case EDA_SHAPE_TYPE::CURVE:
+    case EDA_SHAPE_TYPE::POLYGON:
     {
         SHAPE_POLY_SET polyList;
 
@@ -730,7 +730,7 @@ void BOARD_ADAPTER::addShapeWithClearance( const PCB_SHAPE* aShape,
 
     default:
         wxFAIL_MSG( "BOARD_ADAPTER::addShapeWithClearance no implementation for "
-                    + PCB_SHAPE_TYPE_T_asString( aShape->GetShape() ) );
+                    + aShape->EDA_SHAPE_TYPE_asString() );
         break;
     }
 }

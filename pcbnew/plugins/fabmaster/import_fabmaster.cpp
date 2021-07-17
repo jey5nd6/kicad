@@ -2759,8 +2759,7 @@ bool FABMASTER::loadOutline( BOARD* aBoard, const std::unique_ptr<FABMASTER::TRA
         {
             const GRAPHIC_LINE* src = static_cast<const GRAPHIC_LINE*>( seg.get() );
 
-            PCB_SHAPE*     line = new PCB_SHAPE( aBoard );
-            line->SetShape( SHAPE_T::SEGMENT );
+            PCB_SHAPE*     line = new PCB_SHAPE( aBoard, SHAPE_T::SEGMENT );
             line->SetLayer( layer );
             line->SetStart( wxPoint( src->start_x, src->start_y ) );
             line->SetEnd( wxPoint( src->end_x, src->end_y ) );
@@ -2776,8 +2775,7 @@ bool FABMASTER::loadOutline( BOARD* aBoard, const std::unique_ptr<FABMASTER::TRA
         {
             const GRAPHIC_ARC* src = static_cast<const GRAPHIC_ARC*>( seg.get() );
 
-            PCB_SHAPE* arc = new PCB_SHAPE( aBoard );
-            arc->SetShape( SHAPE_T::ARC );
+            PCB_SHAPE* arc = new PCB_SHAPE( aBoard, SHAPE_T::ARC );
             arc->SetLayer( layer );
             arc->SetArcCenter( wxPoint( src->center_x, src->center_y ));
             arc->SetArcStart( wxPoint( src->start_x, src->start_y ) );
@@ -2795,8 +2793,7 @@ bool FABMASTER::loadOutline( BOARD* aBoard, const std::unique_ptr<FABMASTER::TRA
             const GRAPHIC_RECTANGLE *src =
                     static_cast<const GRAPHIC_RECTANGLE*>( seg.get() );
 
-            PCB_SHAPE* rect = new PCB_SHAPE( aBoard );
-            rect->SetShape( SHAPE_T::RECT );
+            PCB_SHAPE* rect = new PCB_SHAPE( aBoard, SHAPE_T::RECT );
             rect->SetLayer( layer );
             rect->SetStart( wxPoint( src->start_x, src->start_y ) );
             rect->SetEnd( wxPoint( src->end_x, src->end_y ) );
@@ -2807,8 +2804,7 @@ bool FABMASTER::loadOutline( BOARD* aBoard, const std::unique_ptr<FABMASTER::TRA
         }
         case GR_SHAPE_TEXT:
         {
-            const GRAPHIC_TEXT *src =
-                    static_cast<const GRAPHIC_TEXT*>( seg.get() );
+            const GRAPHIC_TEXT *src = static_cast<const GRAPHIC_TEXT*>( seg.get() );
 
             PCB_TEXT* txt = new PCB_TEXT( aBoard );
             txt->SetLayer( layer );
@@ -2860,9 +2856,7 @@ bool FABMASTER::loadGraphics( BOARD* aBoard )
                 if( poly_outline.OutlineCount() < 1 || poly_outline.COutline( 0 ).PointCount() < 3 )
                     continue;
 
-                PCB_SHAPE* new_poly = new PCB_SHAPE( aBoard );
-
-                new_poly->SetShape( SHAPE_T::POLY );
+                PCB_SHAPE* new_poly = new PCB_SHAPE( aBoard, SHAPE_T::POLY );
                 new_poly->SetLayer( layer );
                 new_poly->SetPolyShape( poly_outline );
                 new_poly->SetWidth( 0 );
@@ -2883,8 +2877,7 @@ bool FABMASTER::loadGraphics( BOARD* aBoard )
             {
                 const GRAPHIC_LINE* src = static_cast<const GRAPHIC_LINE*>( seg.get() );
 
-                PCB_SHAPE*     line = new PCB_SHAPE( aBoard );
-                line->SetShape( SHAPE_T::SEGMENT );
+                PCB_SHAPE*     line = new PCB_SHAPE( aBoard, SHAPE_T::SEGMENT );
                 line->SetLayer( layer );
                 line->SetStart( wxPoint( src->start_x, src->start_y ) );
                 line->SetEnd( wxPoint( src->end_x, src->end_y ) );
@@ -2897,8 +2890,7 @@ bool FABMASTER::loadGraphics( BOARD* aBoard )
             {
                 const GRAPHIC_ARC* src = static_cast<const GRAPHIC_ARC*>( seg.get() );
 
-                PCB_SHAPE* arc = new PCB_SHAPE( aBoard );
-                arc->SetShape( SHAPE_T::ARC );
+                PCB_SHAPE* arc = new PCB_SHAPE( aBoard, SHAPE_T::ARC );
                 arc->SetLayer( layer );
                 arc->SetArcCenter( wxPoint( src->center_x, src->center_y ));
                 arc->SetArcStart( wxPoint( src->start_x, src->start_y ) );
@@ -2913,8 +2905,7 @@ bool FABMASTER::loadGraphics( BOARD* aBoard )
                 const GRAPHIC_RECTANGLE *src =
                         static_cast<const GRAPHIC_RECTANGLE*>( seg.get() );
 
-                PCB_SHAPE* rect = new PCB_SHAPE( aBoard );
-                rect->SetShape( SHAPE_T::RECT );
+                PCB_SHAPE* rect = new PCB_SHAPE( aBoard, SHAPE_T::RECT );
                 rect->SetLayer( layer );
                 rect->SetStart( wxPoint( src->start_x, src->start_y ) );
                 rect->SetEnd( wxPoint( src->end_x, src->end_y ) );
@@ -2955,7 +2946,8 @@ bool FABMASTER::orderZones( BOARD* aBoard )
     std::vector<ZONE*> zones = aBoard->Zones();
 
     std::sort( zones.begin(), zones.end(),
-            [&]( const ZONE* a, const ZONE* b ) {
+            [&]( const ZONE* a, const ZONE* b )
+            {
                 if( a->GetLayer() == b->GetLayer() )
                     return a->GetBoundingBox().GetArea() > b->GetBoundingBox().GetArea();
 
@@ -3007,13 +2999,9 @@ bool FABMASTER::LoadBoard( BOARD* aBoard, PROGRESS_REPORTER* aProgressReporter )
         checkpoint();
 
         if( track->lclass == "ETCH" )
-        {
             loadEtch( aBoard, track);
-        }
         else if( track->layer == "OUTLINE" )
-        {
             loadOutline( aBoard, track );
-        }
     }
 
     orderZones( aBoard );

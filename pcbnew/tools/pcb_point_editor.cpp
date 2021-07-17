@@ -216,9 +216,9 @@ std::shared_ptr<EDIT_POINTS> PCB_POINT_EDITOR::makePoints( EDA_ITEM* aItem )
 
         case SHAPE_T::ARC:
             points->AddPoint( shape->GetCenter() );
-            points->AddPoint( shape->GetArcStart() );
+            points->AddPoint( shape->GetStart() );
             points->AddPoint( shape->GetArcMid() );
-            points->AddPoint( shape->GetArcEnd() );
+            points->AddPoint( shape->GetEnd() );
 
             points->Point( ARC_MID ).SetGridConstraint( IGNORE_GRID );
             points->Point( ARC_START ).SetGridConstraint( SNAP_TO_GRID );
@@ -632,7 +632,7 @@ void PCB_POINT_EDITOR::editArcEndpointKeepTangent( PCB_SHAPE* aArc, const VECTOR
     VECTOR2I p1, p2, p3;
     // p1 does not move, p2 does.
 
-    if( aStart != aArc->GetArcStart() )
+    if( aStart != aArc->GetStart() )
     {
         start       = aCursor;
         p1          = aEnd;
@@ -640,7 +640,7 @@ void PCB_POINT_EDITOR::editArcEndpointKeepTangent( PCB_SHAPE* aArc, const VECTOR
         p3          = aMid;
         movingStart = true;
     }
-    else if( aEnd != aArc->GetArcEnd() )
+    else if( aEnd != aArc->GetEnd() )
     {
         end         = aCursor;
         p1          = aStart;
@@ -755,7 +755,7 @@ void PCB_POINT_EDITOR::editArcEndpointKeepTangent( PCB_SHAPE* aArc, const VECTOR
         // v4 is the new center
         v4 = ( !transformCircle ) ? VECTOR2D( -delta, 0 ) : VECTOR2D( 2 * R + delta, 0 );
 
-        clockwise = aArc->GetAngle() > 0;
+        clockwise = aArc->GetArcAngle() > 0;
 
         if( transformCircle )
             clockwise = !clockwise;
@@ -778,13 +778,13 @@ void PCB_POINT_EDITOR::editArcEndpointKeepTangent( PCB_SHAPE* aArc, const VECTOR
 
         if( arcValid )
         {
-            aArc->SetAngle( newAngle, false );
-            aArc->SetArcCenter( ( wxPoint ) center );
+            aArc->SetCenter( (wxPoint) aCenter );
+            aArc->SetArcAngle( newAngle );
 
             if( movingStart )
-                aArc->SetArcStart( ( wxPoint ) start );
+                aArc->SetStart( (wxPoint) aStart );
             else
-                aArc->SetArcEnd( ( wxPoint ) end );
+                aArc->SetEnd( (wxPoint) aEnd );
         }
     }
 }
@@ -905,7 +905,7 @@ void PCB_POINT_EDITOR::editArcEndpointKeepCenter( PCB_SHAPE* aArc, const VECTOR2
 
     // p1 does not move, p2 does.
 
-    if( aStart != aArc->GetArcStart() )
+    if( aStart != aArc->GetStart() )
     {
         p1          = aEnd;
         p2          = aStart;
@@ -951,7 +951,7 @@ void PCB_POINT_EDITOR::editArcEndpointKeepCenter( PCB_SHAPE* aArc, const VECTOR2
     p1 = p1 + aCenter;
     p2 = p2 + aCenter;
 
-    clockwise = aArc->GetAngle() > 0;
+    clockwise = aArc->GetArcAngle() > 0;
 
     VECTOR2D startLine = aStart - aCenter;
     VECTOR2D endLine   = aEnd - aCenter;
@@ -962,13 +962,13 @@ void PCB_POINT_EDITOR::editArcEndpointKeepCenter( PCB_SHAPE* aArc, const VECTOR2
     else if( !clockwise && newAngle > 0.0 )
         newAngle -= 3600.0;
 
-    aArc->SetAngle( newAngle, false );
-    aArc->SetArcCenter((wxPoint) aCenter );
+    aArc->SetCenter( (wxPoint) aCenter );
+    aArc->SetArcAngle( newAngle );
 
     if( movingStart )
-        aArc->SetArcStart( (wxPoint) aStart );
+        aArc->SetStart( (wxPoint) aStart );
     else
-        aArc->SetArcEnd( (wxPoint) aEnd );
+        aArc->SetEnd( (wxPoint) aEnd );
 }
 
 
@@ -1028,8 +1028,8 @@ void PCB_POINT_EDITOR::editArcMidKeepCenter( PCB_SHAPE* aArc, const VECTOR2I& aC
     start = start + aCenter;
     end   = end + aCenter;
 
-    aArc->SetArcStart( (wxPoint) start );
-    aArc->SetArcEnd( (wxPoint) end );
+    aArc->SetStart( (wxPoint) start );
+    aArc->SetEnd( (wxPoint) end );
 }
 
 
@@ -1653,9 +1653,9 @@ void PCB_POINT_EDITOR::updatePoints()
 
         case SHAPE_T::ARC:
             m_editPoints->Point( ARC_CENTER ).SetPosition( shape->GetCenter() );
-            m_editPoints->Point( ARC_START ).SetPosition( shape->GetArcStart() );
+            m_editPoints->Point( ARC_START ).SetPosition( shape->GetStart() );
             m_editPoints->Point( ARC_MID ).SetPosition( shape->GetArcMid() );
-            m_editPoints->Point( ARC_END ).SetPosition( shape->GetArcEnd() );
+            m_editPoints->Point( ARC_END ).SetPosition( shape->GetEnd() );
             break;
 
         case SHAPE_T::CIRCLE:

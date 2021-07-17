@@ -813,10 +813,6 @@ void PCB_IO::format( const PCB_SHAPE* aShape, int aNestLevel ) const
                      locked.c_str(),
                       FormatInternalUnits( aShape->GetStart() ).c_str(),
                       FormatInternalUnits( aShape->GetEnd() ).c_str() );
-
-        if( aShape->GetAngle() != 0.0 )
-            m_out->Print( 0, " (angle %s)", FormatAngle( aShape->GetAngle() ).c_str() );
-
         break;
 
     case SHAPE_T::RECT:
@@ -836,9 +832,9 @@ void PCB_IO::format( const PCB_SHAPE* aShape, int aNestLevel ) const
     case SHAPE_T::ARC:
         m_out->Print( aNestLevel, "(gr_arc%s (start %s) (end %s) (angle %s)",
                       locked.c_str(),
+                      FormatInternalUnits( aShape->GetCenter() ).c_str(),
                       FormatInternalUnits( aShape->GetStart() ).c_str(),
-                      FormatInternalUnits( aShape->GetEnd() ).c_str(),
-                      FormatAngle( aShape->GetAngle() ).c_str() );
+                      FormatAngle( aShape->GetArcAngle() ).c_str() );
         break;
 
     case SHAPE_T::POLY:
@@ -915,7 +911,7 @@ void PCB_IO::format( const PCB_SHAPE* aShape, int aNestLevel ) const
         break;
 
     default:
-        wxFAIL_MSG( "PCB_IO::format not implemented for " + aShape->SHAPE_T_asString() );
+        UNIMPLEMENTED_FOR( aShape->SHAPE_T_asString() );
         return;
     };
 
@@ -970,9 +966,9 @@ void PCB_IO::format( const FP_SHAPE* aFPShape, int aNestLevel ) const
     case SHAPE_T::ARC:
         m_out->Print( aNestLevel, "(fp_arc%s (start %s) (end %s) (angle %s)",
                       locked.c_str(),
+                      FormatInternalUnits( aFPShape->GetCenter0() ).c_str(),
                       FormatInternalUnits( aFPShape->GetStart0() ).c_str(),
-                      FormatInternalUnits( aFPShape->GetEnd0() ).c_str(),
-                      FormatAngle( aFPShape->GetAngle() ).c_str() );
+                      FormatAngle( aFPShape->GetArcAngle() ).c_str() );
         break;
 
     case SHAPE_T::POLY:
@@ -1645,9 +1641,9 @@ void PCB_IO::format( const PAD* aPad, int aNestLevel ) const
 
             case SHAPE_T::ARC:
                 m_out->Print( nested_level, "(gr_arc (start %s) (end %s) (angle %s)",
+                              FormatInternalUnits( primitive->GetCenter() ).c_str(),
                               FormatInternalUnits( primitive->GetStart() ).c_str(),
-                              FormatInternalUnits( primitive->GetEnd() ).c_str(),
-                              FormatAngle( primitive->GetAngle() ).c_str() );
+                              FormatAngle( primitive->GetArcAngle() ).c_str() );
                 break;
 
             case SHAPE_T::CIRCLE:

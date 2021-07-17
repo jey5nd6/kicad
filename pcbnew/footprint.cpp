@@ -2065,6 +2065,7 @@ bool FOOTPRINT::HasThroughHolePads() const
 
 
 #define TEST( a, b ) { if( a != b ) return a < b; }
+#define TEST_PT( a, b ) { if( a.x != b.x ) return a.x < b.x; if( a.y != b.y ) return a.y < b.y; }
 
 
 bool FOOTPRINT::cmp_drawings::operator()( const BOARD_ITEM* aFirst,
@@ -2080,18 +2081,13 @@ bool FOOTPRINT::cmp_drawings::operator()( const BOARD_ITEM* aFirst,
 
         TEST( dwgA->GetShape(), dwgB->GetShape() );
 
-        TEST( dwgA->GetStart0().x, dwgB->GetStart0().x );
-        TEST( dwgA->GetStart0().y, dwgB->GetStart0().y );
-        TEST( dwgA->GetEnd0().x, dwgB->GetEnd0().x );
-        TEST( dwgA->GetEnd0().y, dwgB->GetEnd0().y );
-        TEST( dwgA->GetThirdPoint0().x, dwgB->GetThirdPoint0().x );
-        TEST( dwgA->GetThirdPoint0().y, dwgB->GetThirdPoint0().y );
-        TEST( dwgA->GetBezierC1_0().x, dwgB->GetBezierC1_0().x );
-        TEST( dwgA->GetBezierC1_0().y, dwgB->GetBezierC1_0().y );
-        TEST( dwgA->GetBezierC2_0().x, dwgB->GetBezierC2_0().x );
-        TEST( dwgA->GetBezierC2_0().y, dwgB->GetBezierC2_0().y );
+        TEST_PT( dwgA->GetStart0(), dwgB->GetStart0() );
+        TEST_PT( dwgA->GetEnd0(), dwgB->GetEnd0() );
+        // JEY TODO:
+        // TEST_PT( dwgA->GetArcMid0(), dwgB->GetArcMid0() );
+        TEST_PT( dwgA->GetBezierC1_0(), dwgB->GetBezierC1_0() );
+        TEST_PT( dwgA->GetBezierC2_0(), dwgB->GetBezierC2_0() );
 
-        TEST( dwgA->GetAngle(), dwgB->GetAngle() );
         TEST( dwgA->GetWidth(), dwgB->GetWidth() );
     }
 

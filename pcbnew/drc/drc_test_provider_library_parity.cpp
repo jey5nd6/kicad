@@ -22,6 +22,7 @@
  */
 
 #include <kiway.h>
+#include <macros.h>
 #include <netlist_reader/pcb_netlist.h>
 #include <fp_lib_table.h>
 #include <board.h>
@@ -82,21 +83,40 @@ bool primitivesSame( const std::shared_ptr<PCB_SHAPE>& a, const std::shared_ptr<
 {
     TEST( a->GetShape(), b->GetShape() );
 
-    TEST( a->GetStart(), b->GetStart() );
-    TEST( a->GetEnd(), b->GetEnd() );
-    TEST( a->GetThirdPoint(), b->GetThirdPoint() );
-    TEST( a->GetAngle(), b->GetAngle() );
-    TEST( a->GetBezierC1(), b->GetBezierC1() );
-    TEST( a->GetBezierC2(), b->GetBezierC2() );
+    switch( a->GetShape() )
+    {
+    case SHAPE_T::SEGMENT:
+    case SHAPE_T::RECT:
+    case SHAPE_T::CIRCLE:
+        TEST( a->GetStart(), b->GetStart() );
+        TEST( a->GetEnd(), b->GetEnd() );
+        break;
 
-    TEST( a->GetBezierPoints().size(), b->GetBezierPoints().size() );
-    TEST( a->GetPolyShape().TotalVertices(), b->GetPolyShape().TotalVertices() );
+    case SHAPE_T::ARC:
+        TEST( a->GetStart(), b->GetStart() );
+        TEST( a->GetEnd(), b->GetEnd() );
+        TEST( a->GetCenter(), b->GetCenter() );
+        TEST( a->GetArcAngle(), b->GetArcAngle() );
+        break;
 
-    for( size_t ii = 0; ii < a->GetBezierPoints().size(); ++ii )
-        TEST( a->GetBezierPoints()[ii], b->GetBezierPoints()[ii] );
+    case SHAPE_T::BEZIER:
+        TEST( a->GetStart(), b->GetStart() );
+        TEST( a->GetEnd(), b->GetEnd() );
+        TEST( a->GetBezierC1(), b->GetBezierC1() );
+        TEST( a->GetBezierC2(), b->GetBezierC2() );
+        break;
 
-    for( int ii = 0; ii < a->GetPolyShape().TotalVertices(); ++ii )
-        TEST( a->GetPolyShape().CVertex( ii ), b->GetPolyShape().CVertex( ii ) );
+    case SHAPE_T::POLY:
+        TEST( a->GetPolyShape().TotalVertices(), b->GetPolyShape().TotalVertices() );
+
+        for( int ii = 0; ii < a->GetPolyShape().TotalVertices(); ++ii )
+            TEST( a->GetPolyShape().CVertex( ii ), b->GetPolyShape().CVertex( ii ) );
+
+        break;
+
+    default:
+        UNIMPLEMENTED_FOR( a->SHAPE_T_asString() );
+    }
 
     TEST( a->GetWidth(), b->GetWidth() );
     TEST( a->IsFilled(), b->IsFilled() );
@@ -160,21 +180,40 @@ bool shapesSame( FP_SHAPE* a, FP_SHAPE* b )
 {
     TEST( a->GetShape(), b->GetShape() );
 
-    TEST( a->GetStart0(), b->GetStart0() );
-    TEST( a->GetEnd0(), b->GetEnd0() );
-    TEST( a->GetThirdPoint0(), b->GetThirdPoint0() );
-    TEST( a->GetAngle(), b->GetAngle() );
-    TEST( a->GetBezierC1_0(), b->GetBezierC1_0() );
-    TEST( a->GetBezierC2_0(), b->GetBezierC2_0() );
+    switch( a->GetShape() )
+    {
+    case SHAPE_T::SEGMENT:
+    case SHAPE_T::RECT:
+    case SHAPE_T::CIRCLE:
+        TEST( a->GetStart0(), b->GetStart0() );
+        TEST( a->GetEnd0(), b->GetEnd0() );
+        break;
 
-    TEST( a->GetBezierPoints().size(), b->GetBezierPoints().size() );
-    TEST( a->GetPolyShape().TotalVertices(), b->GetPolyShape().TotalVertices() );
+    case SHAPE_T::ARC:
+        TEST( a->GetStart0(), b->GetStart0() );
+        TEST( a->GetEnd0(), b->GetEnd0() );
+        TEST( a->GetCenter0(), b->GetCenter0() );
+        TEST( a->GetArcAngle(), b->GetArcAngle() );
+        break;
 
-    for( size_t ii = 0; ii < a->GetBezierPoints().size(); ++ii )
-        TEST( a->GetBezierPoints()[ii], b->GetBezierPoints()[ii] );
+    case SHAPE_T::BEZIER:
+        TEST( a->GetStart0(), b->GetStart0() );
+        TEST( a->GetEnd0(), b->GetEnd0() );
+        TEST( a->GetBezierC1_0(), b->GetBezierC1_0() );
+        TEST( a->GetBezierC2_0(), b->GetBezierC2_0() );
+        break;
 
-    for( int ii = 0; ii < a->GetPolyShape().TotalVertices(); ++ii )
-        TEST( a->GetPolyShape().CVertex( ii ), b->GetPolyShape().CVertex( ii ) );
+    case SHAPE_T::POLY:
+        TEST( a->GetPolyShape().TotalVertices(), b->GetPolyShape().TotalVertices() );
+
+        for( int ii = 0; ii < a->GetPolyShape().TotalVertices(); ++ii )
+            TEST( a->GetPolyShape().CVertex( ii ), b->GetPolyShape().CVertex( ii ) );
+
+        break;
+
+    default:
+        UNIMPLEMENTED_FOR( a->SHAPE_T_asString() );
+    }
 
     TEST( a->GetWidth(), b->GetWidth() );
     TEST( a->IsFilled(), b->IsFilled() );

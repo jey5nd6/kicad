@@ -318,7 +318,7 @@ SHAPE_POLY_SET CONVERT_TOOL::makePolysFromSegs( const std::deque<EDA_ITEM*>& aIt
                         else
                         {
                             PCB_SHAPE* ps = static_cast<PCB_SHAPE*>( aItem );
-                            arc = SHAPE_ARC( ps->GetArcStart(), ps->GetArcMid(), ps->GetArcEnd(),
+                            arc = SHAPE_ARC( ps->GetStart(), ps->GetArcMid(), ps->GetEnd(),
                                              ps->GetWidth() );
                         }
 
@@ -762,20 +762,19 @@ int CONVERT_TOOL::SegmentToArc( const TOOL_EVENT& aEvent )
     if( source->Type() == PCB_SHAPE_T || source->Type() == PCB_FP_SHAPE_T )
     {
         PCB_SHAPE* line = static_cast<PCB_SHAPE*>( source );
-        PCB_SHAPE* arc  = new PCB_SHAPE( parent );
+        PCB_SHAPE* arc  = new PCB_SHAPE( parent, SHAPE_T::ARC );
 
-        VECTOR2I center = GetArcCenter( start, mid, end );
+        VECTOR2I center = CalcArcCenter( start, mid, end );
 
-        arc->SetShape( SHAPE_T::ARC );
         arc->SetFilled( false );
         arc->SetLayer( layer );
         arc->SetWidth( line->GetWidth() );
 
-        arc->SetArcCenter( wxPoint( center ));
-        arc->SetArcStart( wxPoint( start ) );
-        arc->SetAngle( GetArcAngle( start, mid, end ) );
+        arc->SetCenter( wxPoint( center ) );
+        arc->SetStart( wxPoint( start ) );
+        arc->SetEnd( wxPoint( end ) );
+        arc->SetArcAngle( CalcArcAngle( start, mid, end ) );
 
-        arc->SetArcEnd( wxPoint( end ) );
         commit.Add( arc );
     }
     else
@@ -806,21 +805,13 @@ OPT<SEG> CONVERT_TOOL::getStartEndPoints( EDA_ITEM* aItem, int* aWidth )
     case PCB_SHAPE_T:
     case PCB_FP_SHAPE_T:
     {
-        PCB_SHAPE* line = static_cast<PCB_SHAPE*>( aItem );
+        PCB_SHAPE* shape = static_cast<PCB_SHAPE*>( aItem );
 
         if( aWidth )
-            *aWidth = line->GetWidth();
+            *aWidth = shape->GetWidth();
 
-        if( line->GetShape() == SHAPE_T::SEGMENT )
-        {
-            return boost::make_optional<SEG>( { VECTOR2I( line->GetStart() ),
-                                                VECTOR2I( line->GetEnd() ) } );
-        }
-        else
-        {
-            return boost::make_optional<SEG>( { VECTOR2I( line->GetArcStart() ),
-                                                VECTOR2I( line->GetArcEnd() ) } );
-        }
+        return boost::make_optional<SEG>( { VECTOR2I( shape->GetStart() ),
+                                            VECTOR2I( shape->GetEnd() ) } );
     }
 
     case PCB_TRACE_T:

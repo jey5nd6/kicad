@@ -726,7 +726,7 @@ IMAGE* SPECCTRA_DB::makeIMAGE( BOARD* aBoard, FOOTPRINT* aFootprint )
 
         switch( graphic->GetShape() )
         {
-        case EDA_SHAPE_TYPE::SEGMENT:
+        case SHAPE_T::SEGMENT:
             outline = new SHAPE( image, T_outline );
 
             image->Append( outline );
@@ -739,36 +739,36 @@ IMAGE* SPECCTRA_DB::makeIMAGE( BOARD* aBoard, FOOTPRINT* aFootprint )
             path->AppendPoint( mapPt( graphic->GetEnd0() ) );
             break;
 
-        case EDA_SHAPE_TYPE::CIRCLE:
+        case SHAPE_T::CIRCLE:
+        {
+            // this is best done by 4 QARC's but freerouter does not yet support QARCs.
+            // for now, support by using line segments.
+            outline = new SHAPE( image, T_outline );
+            image->Append( outline );
+
+            path = new PATH( outline );
+
+            outline->SetShape( path );
+            path->SetAperture( scale( graphic->GetWidth() ) );
+            path->SetLayerId( "signal" );
+
+            double radius = graphic->GetRadius();
+            wxPoint circle_centre = graphic->m_Start0;
+
+            SHAPE_LINE_CHAIN polyline;
+            ConvertArcToPolyline( polyline, VECTOR2I( circle_centre ), radius, 0.0, 360.0,
+                                  ARC_HIGH_DEF, ERROR_INSIDE );
+
+            for( int ii = 0; ii < polyline.PointCount(); ++ii )
             {
-                // this is best done by 4 QARC's but freerouter does not yet support QARCs.
-                // for now, support by using line segments.
-                outline = new SHAPE( image, T_outline );
-                image->Append( outline );
-
-                path = new PATH( outline );
-
-                outline->SetShape( path );
-                path->SetAperture( scale( graphic->GetWidth() ) );
-                path->SetLayerId( "signal" );
-
-                double radius = graphic->GetRadius();
-                wxPoint circle_centre = graphic->m_Start0;
-
-                SHAPE_LINE_CHAIN polyline;
-                ConvertArcToPolyline( polyline, VECTOR2I( circle_centre ), radius,
-                                      0.0, 360.0, ARC_HIGH_DEF, ERROR_INSIDE );
-
-                for( int ii = 0; ii < polyline.PointCount(); ++ii )
-                {
-                    wxPoint corner( polyline.CPoint( ii ).x, polyline.CPoint( ii ).y );
-                    path->AppendPoint( mapPt( corner ) );
-                }
+                wxPoint corner( polyline.CPoint( ii ).x, polyline.CPoint( ii ).y );
+                path->AppendPoint( mapPt( corner ) );
             }
+        }
             break;
 
-        case EDA_SHAPE_TYPE::RECT:
-            {
+        case SHAPE_T::RECT:
+        {
             outline = new SHAPE( image, T_outline );
 
             image->Append( outline );
@@ -788,79 +788,77 @@ IMAGE* SPECCTRA_DB::makeIMAGE( BOARD* aBoard, FOOTPRINT* aFootprint )
 
             corner.x = graphic->GetStart0().x;
             path->AppendPoint( mapPt( corner ) );
-            }
+        }
             break;
 
-        case EDA_SHAPE_TYPE::ARC:
+        case SHAPE_T::ARC:
+        {
+            // this is best done by QARC's but freerouter does not yet support QARCs.
+            // for now, support by using line segments.
+            // So we use a polygon (PATH) to create a approximative arc shape
+            outline = new SHAPE( image, T_outline );
+
+            image->Append( outline );
+            path = new PATH( outline );
+
+            outline->SetShape( path );
+            path->SetAperture( 0 );//scale( graphic->GetWidth() ) );
+            path->SetLayerId( "signal" );
+
+            wxPoint arc_centre = graphic->m_Start0;
+            double radius = graphic->GetRadius()+ graphic->GetWidth()/2;
+            double arcStartDeg = graphic->GetArcAngleStart() / 10.0;
+            double arcAngleDeg = graphic->GetArcAngle() / 10.0;
+
+            // For some obscure reason, FreeRouter does not show the same polygonal
+            // shape for polygons CW and CCW. So used only the order of corners
+            // giving the best look.
+            if( arcAngleDeg < 0 )
             {
-                // this is best done by QARC's but freerouter does not yet support QARCs.
-                // for now, support by using line segments.
-                // So we use a polygon (PATH) to create a approximative arc shape
-                outline = new SHAPE( image, T_outline );
-
-                image->Append( outline );
-                path = new PATH( outline );
-
-                outline->SetShape( path );
-                path->SetAperture( 0 );//scale( graphic->GetWidth() ) );
-                path->SetLayerId( "signal" );
-
-                wxPoint arc_centre = graphic->m_Start0;
-                double radius = graphic->GetRadius()+ graphic->GetWidth()/2;
-                double arcStartDeg = graphic->GetArcAngleStart() / 10.0;
-                double arcAngleDeg = graphic->GetAngle() / 10.0;
-
-                // For some obscure reason, FreeRouter does not show the same polygonal
-                // shape for polygons CW and CCW. So used only the order of corners
-                // giving the best look.
-                if( arcAngleDeg < 0 )
-                {
-                    arcStartDeg = graphic->GetArcAngleEnd() / 10.0;
-                    arcAngleDeg = - arcAngleDeg;
-                }
-
-                SHAPE_LINE_CHAIN polyline;
-                ConvertArcToPolyline( polyline, VECTOR2I( arc_centre ), radius,
-                                      arcStartDeg, arcAngleDeg, ARC_HIGH_DEF, ERROR_INSIDE );
-
-                SHAPE_POLY_SET polyBuffer;
-                polyBuffer.AddOutline( polyline );
-
-                radius -= graphic->GetWidth();
-
-                if( radius > 0 )
-                {
-                    polyline.Clear();
-                    ConvertArcToPolyline( polyline, VECTOR2I( arc_centre ), radius,
-                                          arcStartDeg, arcAngleDeg, ARC_HIGH_DEF, ERROR_INSIDE );
-
-                    // Add points in reverse order, to create a closed polygon
-                    for( int ii = polyline.PointCount()-1; ii >= 0; --ii )
-                        polyBuffer.Append( polyline.CPoint( ii ) );
-                }
-
-                // ensure the polygon is closed
-                polyBuffer.Append( polyBuffer.Outline(0).CPoint( 0 ) );
-
-                wxPoint move = graphic->GetCenter() - arc_centre;
-
-                TransformCircleToPolygon( polyBuffer, graphic->GetArcStart() - move,
-                                          graphic->GetWidth()/2,
-                                          ARC_HIGH_DEF, ERROR_INSIDE );
-
-                TransformCircleToPolygon( polyBuffer, graphic->GetArcEnd() - move,
-                                          graphic->GetWidth()/2,
-                                          ARC_HIGH_DEF, ERROR_INSIDE );
-
-                polyBuffer.Simplify( SHAPE_POLY_SET::PM_FAST );
-                SHAPE_LINE_CHAIN& poly = polyBuffer.Outline( 0 );
-
-                for( int ii = 0; ii < poly.PointCount(); ++ii )
-                {
-                    wxPoint corner( poly.CPoint( ii ).x, poly.CPoint( ii ).y );
-                    path->AppendPoint( mapPt( corner ) );
-                }
+                arcStartDeg = graphic->GetArcAngleEnd() / 10.0;
+                arcAngleDeg = - arcAngleDeg;
             }
+
+            SHAPE_LINE_CHAIN polyline;
+            ConvertArcToPolyline( polyline, VECTOR2I( arc_centre ), radius, arcStartDeg,
+                                  arcAngleDeg, ARC_HIGH_DEF, ERROR_INSIDE );
+
+            SHAPE_POLY_SET polyBuffer;
+            polyBuffer.AddOutline( polyline );
+
+            radius -= graphic->GetWidth();
+
+            if( radius > 0 )
+            {
+                polyline.Clear();
+                ConvertArcToPolyline( polyline, VECTOR2I( arc_centre ), radius, arcStartDeg,
+                                      arcAngleDeg, ARC_HIGH_DEF, ERROR_INSIDE );
+
+                // Add points in reverse order, to create a closed polygon
+                for( int ii = polyline.PointCount()-1; ii >= 0; --ii )
+                    polyBuffer.Append( polyline.CPoint( ii ) );
+            }
+
+            // ensure the polygon is closed
+            polyBuffer.Append( polyBuffer.Outline(0).CPoint( 0 ) );
+
+            wxPoint move = graphic->GetCenter() - arc_centre;
+
+            TransformCircleToPolygon( polyBuffer, graphic->GetStart() - move, graphic->GetWidth()/2,
+                                      ARC_HIGH_DEF, ERROR_INSIDE );
+
+            TransformCircleToPolygon( polyBuffer, graphic->GetEnd() - move, graphic->GetWidth()/2,
+                                      ARC_HIGH_DEF, ERROR_INSIDE );
+
+            polyBuffer.Simplify( SHAPE_POLY_SET::PM_FAST );
+            SHAPE_LINE_CHAIN& poly = polyBuffer.Outline( 0 );
+
+            for( int ii = 0; ii < poly.PointCount(); ++ii )
+            {
+                wxPoint corner( poly.CPoint( ii ).x, poly.CPoint( ii ).y );
+                path->AppendPoint( mapPt( corner ) );
+            }
+        }
             break;
 
         default:

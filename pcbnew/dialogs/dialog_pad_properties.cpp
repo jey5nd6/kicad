@@ -695,26 +695,26 @@ void DIALOG_PAD_PROPERTIES::displayPrimitivesList()
 
         switch( primitive->GetShape() )
         {
-        case EDA_SHAPE_TYPE::SEGMENT: // usual segment : line with rounded ends
+        case SHAPE_T::SEGMENT: // usual segment : line with rounded ends
             bs_info[0] = _( "Segment" );
             bs_info[1] = _( "from" ) + wxS( " " )+ formatCoord( m_units, primitive->GetStart() );
             bs_info[2] = _( "to" ) + wxS( " " )+  formatCoord( m_units, primitive->GetEnd() );
             break;
 
-        case EDA_SHAPE_TYPE::CURVE: // Bezier segment
+        case SHAPE_T::CURVE: // Bezier segment
             bs_info[0] = _( "Bezier" );
             bs_info[1] = _( "from" ) + wxS( " " )+ formatCoord( m_units, primitive->GetStart() );
             bs_info[2] = _( "to" ) + wxS( " " )+  formatCoord( m_units, primitive->GetEnd() );
             break;
 
-        case EDA_SHAPE_TYPE::ARC: // Arc with rounded ends
+        case SHAPE_T::ARC: // Arc with rounded ends
             bs_info[0] = _( "Arc" );
             bs_info[1] = _( "center" ) + wxS( " " )+ formatCoord( m_units, primitive->GetCenter() );
-            bs_info[2] = _( "start" ) + wxS( " " )+ formatCoord( m_units, primitive->GetArcStart() );
+            bs_info[2] = _( "start" ) + wxS( " " )+ formatCoord( m_units, primitive->GetStart() );
             bs_info[3] = _( "angle" ) + wxS( " " )+ FormatAngle( primitive->GetAngle() );
             break;
 
-        case EDA_SHAPE_TYPE::CIRCLE: //  ring or circle
+        case SHAPE_T::CIRCLE: //  ring or circle
             if( primitive->GetWidth() )
                 bs_info[0] = _( "ring" );
             else
@@ -724,7 +724,7 @@ void DIALOG_PAD_PROPERTIES::displayPrimitivesList()
             bs_info[2] = _( "radius" ) + wxS( " " )+ MessageTextFromValue( m_units, primitive->GetRadius() );
             break;
 
-        case EDA_SHAPE_TYPE::POLYGON: // polygon
+        case SHAPE_T::POLYGON: // polygon
             bs_info[0] = "Polygon";
             bs_info[1] = wxString::Format( _( "corners count %d" ),
                                            (int) primitive->GetPolyShape().Outline( 0 ).PointCount() );
@@ -2055,7 +2055,7 @@ void DIALOG_PAD_PROPERTIES::editPrimitive()
 
     std::shared_ptr<PCB_SHAPE>& shape = m_primitives[select];
 
-    if( shape->GetShape() == EDA_SHAPE_TYPE::POLYGON )
+    if( shape->GetShape() == SHAPE_T::POLYGON )
     {
         DIALOG_PAD_PRIMITIVE_POLY_PROPS dlg( this, m_parent, shape.get() );
 
@@ -2153,16 +2153,15 @@ void DIALOG_PAD_PROPERTIES::onAddPrimitive( wxCommandEvent& event )
     if( type == -1 )
         return;
 
-    EDA_SHAPE_TYPE listtype[] = { EDA_SHAPE_TYPE::SEGMENT, EDA_SHAPE_TYPE::ARC,
-                                  EDA_SHAPE_TYPE::CURVE, EDA_SHAPE_TYPE::CIRCLE,
-                                  EDA_SHAPE_TYPE::POLYGON };
+    SHAPE_T listtype[] = { SHAPE_T::SEGMENT, SHAPE_T::ARC, SHAPE_T::CURVE, SHAPE_T::CIRCLE,
+                           SHAPE_T::POLYGON };
 
     PCB_SHAPE* primitive = new PCB_SHAPE();
     primitive->SetShape( listtype[type] );
     primitive->SetWidth( m_board->GetDesignSettings().GetLineThickness( F_Cu ) );
     primitive->SetFilled( true );
 
-    if( listtype[type] == EDA_SHAPE_TYPE::POLYGON )
+    if( listtype[type] == SHAPE_T::POLYGON )
     {
         DIALOG_PAD_PRIMITIVE_POLY_PROPS dlg( this, m_parent, primitive );
 

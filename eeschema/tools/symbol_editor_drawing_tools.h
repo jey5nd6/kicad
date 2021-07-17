@@ -65,10 +65,10 @@ private:
     void setTransitions() override;
 
 private:
-    double    m_lastTextAngle;
-    FILL_TYPE m_lastFillStyle;
-    bool      m_drawSpecificConvert;
-    bool      m_drawSpecificUnit;
+    double        m_lastTextAngle;
+    FILL_T m_lastFillStyle;
+    bool          m_drawSpecificConvert;
+    bool          m_drawSpecificUnit;
 };
 
 #endif /* SYMBOL_EDITOR_DRAWING_TOOLS_H */

@@ -695,8 +695,7 @@ void PAD_TOOL::recombinePad( PAD* aPad )
             aPad->SetSize( aPad->GetDrillSize() + minAnnularRingWidth );
             aPad->SetOffset( wxPoint( 0, 0 ) );
 
-            PCB_SHAPE* shape = new PCB_SHAPE;
-            shape->SetShape( EDA_SHAPE_TYPE::POLYGON );
+            PCB_SHAPE* shape = new PCB_SHAPE( nullptr, SHAPE_T::POLYGON );
             shape->SetFilled( true );
             shape->SetPolyShape( existingOutline );
             shape->Move( - aPad->GetPosition() );

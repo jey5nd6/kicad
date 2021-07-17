@@ -2328,7 +2328,7 @@ PCB_SHAPE* PCB_PARSER::parsePCB_SHAPE()
     switch( CurTok() )
     {
     case T_gr_arc:
-        shape->SetShape( EDA_SHAPE_TYPE::ARC );
+        shape->SetShape( SHAPE_T::ARC );
         token = NextTok();
 
         if( token == T_locked )
@@ -2364,7 +2364,7 @@ PCB_SHAPE* PCB_PARSER::parsePCB_SHAPE()
         break;
 
     case T_gr_circle:
-        shape->SetShape( EDA_SHAPE_TYPE::CIRCLE );
+        shape->SetShape( SHAPE_T::CIRCLE );
         token = NextTok();
 
         if( token == T_locked )
@@ -2399,7 +2399,7 @@ PCB_SHAPE* PCB_PARSER::parsePCB_SHAPE()
         break;
 
     case T_gr_curve:
-        shape->SetShape( EDA_SHAPE_TYPE::CURVE );
+        shape->SetShape( SHAPE_T::CURVE );
         token = NextTok();
 
         if( token == T_locked )
@@ -2424,7 +2424,7 @@ PCB_SHAPE* PCB_PARSER::parsePCB_SHAPE()
         break;
 
     case T_gr_rect:
-        shape->SetShape( EDA_SHAPE_TYPE::RECT );
+        shape->SetShape( SHAPE_T::RECT );
         token = NextTok();
 
         if( token == T_locked )
@@ -2493,7 +2493,7 @@ PCB_SHAPE* PCB_PARSER::parsePCB_SHAPE()
 
     case T_gr_poly:
     {
-        shape->SetShape( EDA_SHAPE_TYPE::POLYGON );
+        shape->SetShape( SHAPE_T::POLYGON );
         shape->SetWidth( 0 ); // this is the default value. will be (perhaps) modified later
         shape->SetPolyPoints( {} );
 
@@ -2607,13 +2607,13 @@ PCB_SHAPE* PCB_PARSER::parsePCB_SHAPE()
         // Legacy versions didn't have a filled flag but allowed some shapes to indicate they
         // should be filled by specifying a 0 stroke-width.
         if( shape->GetWidth() == 0
-            && ( shape->GetShape() == EDA_SHAPE_TYPE::RECT
-                 || shape->GetShape() == EDA_SHAPE_TYPE::CIRCLE ) )
+            && ( shape->GetShape() == SHAPE_T::RECT
+                 || shape->GetShape() == SHAPE_T::CIRCLE ) )
         {
             shape->SetFilled( true );
         }
         // Polygons on non-Edge_Cuts layers were always filled
-        else if( shape->GetShape() == EDA_SHAPE_TYPE::POLYGON && shape->GetLayer() != Edge_Cuts )
+        else if( shape->GetShape() == SHAPE_T::POLYGON && shape->GetLayer() != Edge_Cuts )
         {
             shape->SetFilled( true );
         }
@@ -3591,7 +3591,7 @@ FP_SHAPE* PCB_PARSER::parseFP_SHAPE()
     switch( CurTok() )
     {
     case T_fp_arc:
-        shape->SetShape( EDA_SHAPE_TYPE::ARC );
+        shape->SetShape( SHAPE_T::ARC );
         token = NextTok();
 
         if( token == T_locked )
@@ -3637,7 +3637,7 @@ FP_SHAPE* PCB_PARSER::parseFP_SHAPE()
         break;
 
     case T_fp_circle:
-        shape->SetShape( EDA_SHAPE_TYPE::CIRCLE );
+        shape->SetShape( SHAPE_T::CIRCLE );
         token = NextTok();
 
         if( token == T_locked )
@@ -3671,7 +3671,7 @@ FP_SHAPE* PCB_PARSER::parseFP_SHAPE()
         break;
 
     case T_fp_curve:
-        shape->SetShape( EDA_SHAPE_TYPE::CURVE );
+        shape->SetShape( SHAPE_T::CURVE );
         token = NextTok();
 
         if( token == T_locked )
@@ -3696,7 +3696,7 @@ FP_SHAPE* PCB_PARSER::parseFP_SHAPE()
         break;
 
     case T_fp_rect:
-        shape->SetShape( EDA_SHAPE_TYPE::RECT );
+        shape->SetShape( SHAPE_T::RECT );
         token = NextTok();
 
         if( token == T_locked )
@@ -3767,7 +3767,7 @@ FP_SHAPE* PCB_PARSER::parseFP_SHAPE()
 
     case T_fp_poly:
     {
-        shape->SetShape( EDA_SHAPE_TYPE::POLYGON );
+        shape->SetShape( SHAPE_T::POLYGON );
         shape->SetPolyPoints( {} );
         SHAPE_LINE_CHAIN& outline = shape->GetPolyShape().Outline( 0 );
 
@@ -3873,13 +3873,13 @@ FP_SHAPE* PCB_PARSER::parseFP_SHAPE()
         // Legacy versions didn't have a filled flag but allowed some shapes to indicate they
         // should be filled by specifying a 0 stroke-width.
         if( shape->GetWidth() == 0
-            && ( shape->GetShape() == EDA_SHAPE_TYPE::RECT
-                 || shape->GetShape() == EDA_SHAPE_TYPE::CIRCLE ) )
+            && ( shape->GetShape() == SHAPE_T::RECT
+                 || shape->GetShape() == SHAPE_T::CIRCLE ) )
         {
             shape->SetFilled( true );
         }
         // Polygons on non-Edge_Cuts layers were always filled
-        else if( shape->GetShape() == EDA_SHAPE_TYPE::POLYGON && shape->GetLayer() != Edge_Cuts )
+        else if( shape->GetShape() == SHAPE_T::POLYGON && shape->GetLayer() != Edge_Cuts )
         {
             shape->SetFilled( true );
         }
@@ -4305,8 +4305,8 @@ PAD* PCB_PARSER::parsePAD( FOOTPRINT* aParent )
                 {
                 case T_gr_arc:
                     dummysegm = parsePCB_SHAPE();
-                    pad->AddPrimitiveArc( dummysegm->GetCenter(), dummysegm->GetArcStart(),
-                                          dummysegm->GetAngle(), dummysegm->GetWidth() );
+                    pad->AddPrimitiveArc( dummysegm->GetCenter(), dummysegm->GetStart(),
+                                          dummysegm->GetArcAngle(), dummysegm->GetWidth() );
                     break;
 
                 case T_gr_line:

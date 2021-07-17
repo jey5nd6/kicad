@@ -183,12 +183,12 @@ std::shared_ptr<EDIT_POINTS> PCB_POINT_EDITOR::makePoints( EDA_ITEM* aItem )
 
         switch( shape->GetShape() )
         {
-        case EDA_SHAPE_TYPE::SEGMENT:
+        case SHAPE_T::SEGMENT:
             points->AddPoint( shape->GetStart() );
             points->AddPoint( shape->GetEnd() );
             break;
 
-        case EDA_SHAPE_TYPE::RECT:
+        case SHAPE_T::RECT:
             points->AddPoint( shape->GetStart() );
             points->AddPoint( wxPoint( shape->GetEnd().x, shape->GetStart().y ) );
             points->AddPoint( shape->GetEnd() );
@@ -205,11 +205,11 @@ std::shared_ptr<EDIT_POINTS> PCB_POINT_EDITOR::makePoints( EDA_ITEM* aItem )
 
             break;
 
-        case EDA_SHAPE_TYPE::ARC:
+        case SHAPE_T::ARC:
             points->AddPoint( shape->GetCenter() );
-            points->AddPoint( shape->GetArcStart() );
+            points->AddPoint( shape->GetStart() );
             points->AddPoint( shape->GetArcMid() );
-            points->AddPoint( shape->GetArcEnd() );
+            points->AddPoint( shape->GetEnd() );
 
             points->Point( ARC_MID ).SetGridConstraint( IGNORE_GRID );
             points->Point( ARC_START ).SetGridConstraint( SNAP_TO_GRID );
@@ -217,16 +217,16 @@ std::shared_ptr<EDIT_POINTS> PCB_POINT_EDITOR::makePoints( EDA_ITEM* aItem )
             points->Point( ARC_END ).SetGridConstraint( SNAP_TO_GRID );
             break;
 
-        case EDA_SHAPE_TYPE::CIRCLE:
+        case SHAPE_T::CIRCLE:
             points->AddPoint( shape->GetCenter() );
             points->AddPoint( shape->GetEnd() );
             break;
 
-        case EDA_SHAPE_TYPE::POLYGON:
+        case SHAPE_T::POLYGON:
             buildForPolyOutline( points, &shape->GetPolyShape() );
             break;
 
-        case EDA_SHAPE_TYPE::CURVE:
+        case SHAPE_T::CURVE:
             points->AddPoint( shape->GetStart() );
             points->AddPoint( shape->GetBezControl1() );
             points->AddPoint( shape->GetBezControl2() );
@@ -612,32 +612,22 @@ void PCB_POINT_EDITOR::editArcEndpointKeepTangent( PCB_SHAPE* aArc, VECTOR2I aCe
                                                    VECTOR2I aStart, VECTOR2I aMid, VECTOR2I aEnd,
                                                    const VECTOR2I aCursor ) const
 {
-    VECTOR2D startLine = aStart - aCenter;
-    VECTOR2D endLine   = aEnd - aCenter;
-    double   newAngle  = RAD2DECIDEG( endLine.Angle() - startLine.Angle() );
+    bool     arcValid = true;
+    VECTOR2I *p1, *p2, *p3;    // p1 does not move, p2 does.
 
-    bool clockwise;
-    bool movingStart;
-    bool arcValid = true;
-
-    VECTOR2I *p1, *p2, *p3;
-    // p1 does not move, p2 does.
-
-    if( aStart != aArc->GetArcStart() )
+    if( aStart != aArc->GetStart() )
     {
-        aStart      = aCursor;
-        p1          = &aEnd;
-        p2          = &aStart;
-        p3          = &aMid;
-        movingStart = true;
+        aStart = aCursor;
+        p1     = &aEnd;
+        p2     = &aStart;
+        p3     = &aMid;
     }
-    else if( aEnd != aArc->GetArcEnd() )
+    else if( aEnd != aArc->GetEnd() )
     {
-        aEnd        = aCursor;
-        p1          = &aStart;
-        p2          = &aEnd;
-        p3          = &aMid;
-        movingStart = false;
+        aEnd = aCursor;
+        p1   = &aStart;
+        p2   = &aEnd;
+        p3   = &aMid;
     }
     else
     {
@@ -727,26 +717,20 @@ void PCB_POINT_EDITOR::editArcEndpointKeepTangent( PCB_SHAPE* aArc, VECTOR2I aCe
             transformCircle = true;
             v2.x            = 2 * R - v2.x;
         }
+
         // We can keep the tangent constraint.
         double delta = ( R * R - v2.x * v2.x - v2.y * v2.y ) / ( 2 * v2.x - 2 * R );
 
         // This is just to limit the radius, so nothing overflows later when drawing.
         if( abs( v2.y / ( R - v2.x ) ) > ADVANCED_CFG::GetCfg().m_DrawArcCenterMaxAngle )
-        {
             arcValid = false;
-        }
+
         // Never recorded a problem, but still checking.
         if( !std::isfinite( delta ) )
-        {
             arcValid = false;
-        }
+
         // v4 is the new center
         v4 = ( !transformCircle ) ? VECTOR2D( -delta, 0 ) : VECTOR2D( 2 * R + delta, 0 );
-
-        clockwise = aArc->GetAngle() > 0;
-
-        if( transformCircle )
-            clockwise = !clockwise;
 
         tmpx = v4.x * u1.x + v4.y * u2.x;
         tmpy = v4.x * u1.y + v4.y * u2.y;
@@ -755,25 +739,8 @@ void PCB_POINT_EDITOR::editArcEndpointKeepTangent( PCB_SHAPE* aArc, VECTOR2I aCe
 
         aCenter = v4 + aCenter;
 
-        startLine = aStart - aCenter;
-        endLine   = aEnd - aCenter;
-        newAngle  = RAD2DECIDEG( endLine.Angle() - startLine.Angle() );
-
-        if( clockwise && newAngle < 0.0 )
-            newAngle += 3600.0;
-        else if( !clockwise && newAngle > 0.0 )
-            newAngle -= 3600.0;
-
         if( arcValid )
-        {
-            aArc->SetAngle( newAngle, false );
-            aArc->SetArcCenter( wxPoint( aCenter.x, aCenter.y ));
-
-            if( movingStart )
-                aArc->SetArcStart( wxPoint( aStart.x, aStart.y ) );
-            else
-                aArc->SetArcEnd( wxPoint( aEnd.x, aEnd.y ) );
-        }
+            aArc->UpdateArcGeometry( aStart, aEnd, aCenter );
     }
 }
 
@@ -884,30 +851,23 @@ void PCB_POINT_EDITOR::editArcEndpointKeepCenter( PCB_SHAPE* aArc, VECTOR2I aCen
                                                   VECTOR2I aStart, VECTOR2I aMid, VECTOR2I aEnd,
                                                   const VECTOR2I aCursor ) const
 {
-    bool clockwise;
-    bool movingStart;
-
-    VECTOR2I *p1, *p2;
-    VECTOR2I  target;
-
     // p1 does not move, p2 does.
+    VECTOR2I *p1, *p2;
+    bool     minAngle = aArc->GetArcAngle() < 1800;
 
-    if( aStart != aArc->GetArcStart() )
+    if( aStart != aArc->GetStart() )
     {
-        p1          = &aEnd;
-        p2          = &aStart;
-        movingStart = true;
+        p1 = &aEnd;
+        p2 = &aStart;
     }
     else
     {
-        p1          = &aStart;
-        p2          = &aEnd;
-        movingStart = false;
+        p1 = &aStart;
+        p2 = &aEnd;
     }
 
-    target = *p2 - aCenter;
-
-    double sqRadius = ( *p1 - aCenter ).SquaredEuclideanNorm();
+    VECTOR2I target = *p2 - aCenter;
+    double   sqRadius = ( *p1 - aCenter ).SquaredEuclideanNorm();
 
     *p1 = *p1 - aCenter;
     *p2 = *p2 - aCenter;
@@ -936,24 +896,7 @@ void PCB_POINT_EDITOR::editArcEndpointKeepCenter( PCB_SHAPE* aArc, VECTOR2I aCen
     *p1 = *p1 + aCenter;
     *p2 = *p2 + aCenter;
 
-    clockwise = aArc->GetAngle() > 0;
-
-    VECTOR2D startLine = aStart - aCenter;
-    VECTOR2D endLine   = aEnd - aCenter;
-    double   newAngle  = RAD2DECIDEG( endLine.Angle() - startLine.Angle() );
-
-    if( clockwise && newAngle < 0.0 )
-        newAngle += 3600.0;
-    else if( !clockwise && newAngle > 0.0 )
-        newAngle -= 3600.0;
-
-    aArc->SetAngle( newAngle, false );
-    aArc->SetArcCenter((wxPoint) aCenter );
-
-    if( movingStart )
-        aArc->SetArcStart( (wxPoint) aStart );
-    else
-        aArc->SetArcEnd( (wxPoint) aEnd );
+    aArc->UpdateArcGeometry( aStart, aEnd, aCenter );
 }
 
 
@@ -961,8 +904,7 @@ void PCB_POINT_EDITOR::editArcMidKeepCenter( PCB_SHAPE* aArc, VECTOR2I aCenter, 
                                              VECTOR2I aMid, VECTOR2I aEnd,
                                              const VECTOR2I aCursor ) const
 {
-    // Now, update the edit point position
-    // Express the point in a cercle-centered coordinate system.
+    // Express the point in a circle-centered coordinate system.
     aStart = aStart - aCenter;
     aEnd   = aEnd - aCenter;
 
@@ -1011,8 +953,8 @@ void PCB_POINT_EDITOR::editArcMidKeepCenter( PCB_SHAPE* aArc, VECTOR2I aCenter, 
     aStart = aStart + aCenter;
     aEnd   = aEnd + aCenter;
 
-    aArc->SetArcStart( (wxPoint) aStart );
-    aArc->SetArcEnd( (wxPoint) aEnd );
+    aArc->UpdateArcGeometry( aStart, aEnd, aCenter );
+
 }
 
 
@@ -1049,7 +991,7 @@ void PCB_POINT_EDITOR::updateItem() const
 
         switch( shape->GetShape() )
         {
-        case EDA_SHAPE_TYPE::SEGMENT:
+        case SHAPE_T::SEGMENT:
             if( isModified( m_editPoints->Point( SEG_START ) ) )
                 shape->SetStart( (wxPoint) m_editPoints->Point( SEG_START ).GetPosition() );
             else if( isModified( m_editPoints->Point( SEG_END ) ) )
@@ -1057,7 +999,7 @@ void PCB_POINT_EDITOR::updateItem() const
 
             break;
 
-        case EDA_SHAPE_TYPE::RECT:
+        case SHAPE_T::RECT:
         {
             if( isModified( m_editPoints->Point( RECT_TOP_LEFT ) ) )
             {
@@ -1102,7 +1044,7 @@ void PCB_POINT_EDITOR::updateItem() const
         }
             break;
 
-        case EDA_SHAPE_TYPE::ARC:
+        case SHAPE_T::ARC:
         {
             VECTOR2I center = m_editPoints->Point( ARC_CENTER ).GetPosition();
             VECTOR2I mid = m_editPoints->Point( ARC_MID ).GetPosition();
@@ -1136,7 +1078,7 @@ void PCB_POINT_EDITOR::updateItem() const
         }
             break;
 
-        case EDA_SHAPE_TYPE::CIRCLE:
+        case SHAPE_T::CIRCLE:
         {
             const VECTOR2I& center = m_editPoints->Point( CIRC_CENTER ).GetPosition();
             const VECTOR2I& end = m_editPoints->Point( CIRC_END ).GetPosition();
@@ -1153,7 +1095,7 @@ void PCB_POINT_EDITOR::updateItem() const
         }
             break;
 
-        case EDA_SHAPE_TYPE::POLYGON:
+        case SHAPE_T::POLYGON:
         {
             SHAPE_POLY_SET& outline = shape->GetPolyShape();
 
@@ -1170,7 +1112,7 @@ void PCB_POINT_EDITOR::updateItem() const
         }
             break;
 
-        case EDA_SHAPE_TYPE::CURVE:
+        case SHAPE_T::CURVE:
             if( isModified( m_editPoints->Point( BEZIER_CURVE_START ) ) )
                 shape->SetStart( (wxPoint) m_editPoints->Point( BEZIER_CURVE_START ).GetPosition() );
             else if( isModified( m_editPoints->Point( BEZIER_CURVE_CONTROL_POINT1 ) ) )
@@ -1606,12 +1548,12 @@ void PCB_POINT_EDITOR::updatePoints()
 
         switch( shape->GetShape() )
         {
-        case EDA_SHAPE_TYPE::SEGMENT:
+        case SHAPE_T::SEGMENT:
             m_editPoints->Point( SEG_START ).SetPosition( shape->GetStart() );
             m_editPoints->Point( SEG_END ).SetPosition( shape->GetEnd() );
             break;
 
-        case EDA_SHAPE_TYPE::RECT:
+        case SHAPE_T::RECT:
             m_editPoints->Point( RECT_TOP_LEFT ).SetPosition( shape->GetStart() );
             m_editPoints->Point( RECT_TOP_RIGHT ).SetPosition( shape->GetEnd().x,
                                                                shape->GetStart().y );
@@ -1620,19 +1562,19 @@ void PCB_POINT_EDITOR::updatePoints()
                                                               shape->GetEnd().y );
             break;
 
-        case EDA_SHAPE_TYPE::ARC:
+        case SHAPE_T::ARC:
             m_editPoints->Point( ARC_CENTER ).SetPosition( shape->GetCenter() );
-            m_editPoints->Point( ARC_START ).SetPosition( shape->GetArcStart() );
+            m_editPoints->Point( ARC_START ).SetPosition( shape->GetStart() );
             m_editPoints->Point( ARC_MID ).SetPosition( shape->GetArcMid() );
-            m_editPoints->Point( ARC_END ).SetPosition( shape->GetArcEnd() );
+            m_editPoints->Point( ARC_END ).SetPosition( shape->GetEnd() );
             break;
 
-        case EDA_SHAPE_TYPE::CIRCLE:
+        case SHAPE_T::CIRCLE:
             m_editPoints->Point( CIRC_CENTER ).SetPosition( shape->GetCenter() );
             m_editPoints->Point( CIRC_END ).SetPosition( shape->GetEnd() );
             break;
 
-        case EDA_SHAPE_TYPE::POLYGON:
+        case SHAPE_T::POLYGON:
         {
             const auto& points = shape->BuildPolyPointsList();
 
@@ -1654,7 +1596,7 @@ void PCB_POINT_EDITOR::updatePoints()
             break;
         }
 
-        case EDA_SHAPE_TYPE::CURVE:
+        case SHAPE_T::CURVE:
             m_editPoints->Point( BEZIER_CURVE_START ).SetPosition( shape->GetStart() );
             m_editPoints->Point( BEZIER_CURVE_CONTROL_POINT1 ).SetPosition( shape->GetBezControl1() );
             m_editPoints->Point( BEZIER_CURVE_CONTROL_POINT2 ).SetPosition( shape->GetBezControl2() );
@@ -1859,7 +1801,7 @@ void PCB_POINT_EDITOR::setAltConstraint( bool aEnabled )
         case PCB_SHAPE_T:
         case PCB_FP_SHAPE_T:
             isPoly = static_cast<PCB_SHAPE*>( m_editPoints->GetParent() )->GetShape()
-                     == EDA_SHAPE_TYPE::POLYGON;
+                     == SHAPE_T::POLYGON;
             break;
 
         default:
@@ -1896,11 +1838,11 @@ EDIT_POINT PCB_POINT_EDITOR::get45DegConstrainer() const
     case PCB_FP_SHAPE_T:
         switch( static_cast<const PCB_SHAPE*>( item )->GetShape() )
         {
-        case EDA_SHAPE_TYPE::SEGMENT:
+        case SHAPE_T::SEGMENT:
             return *( m_editPoints->Next( *m_editedPoint ) );     // select the other end of line
 
-        case EDA_SHAPE_TYPE::ARC:
-        case EDA_SHAPE_TYPE::CIRCLE:
+        case SHAPE_T::ARC:
+        case SHAPE_T::CIRCLE:
             return m_editPoints->Point( CIRC_CENTER );
 
         default:        // suppress warnings
@@ -1960,8 +1902,8 @@ bool PCB_POINT_EDITOR::canAddCorner( const EDA_ITEM& aItem )
     if( type == PCB_SHAPE_T || type == PCB_FP_SHAPE_T )
     {
         const PCB_SHAPE& shape = static_cast<const PCB_SHAPE&>( aItem );
-        return shape.GetShape() == EDA_SHAPE_TYPE::SEGMENT
-               || shape.GetShape() == EDA_SHAPE_TYPE::POLYGON;
+        return shape.GetShape() == SHAPE_T::SEGMENT
+               || shape.GetShape() == SHAPE_T::POLYGON;
     }
 
     return false;
@@ -2015,7 +1957,7 @@ bool PCB_POINT_EDITOR::removeCornerCondition( const SELECTION& )
 
     case PCB_SHAPE_T:
     case PCB_FP_SHAPE_T:
-        if( static_cast<PCB_SHAPE*>( item )->GetShape() == EDA_SHAPE_TYPE::POLYGON )
+        if( static_cast<PCB_SHAPE*>( item )->GetShape() == SHAPE_T::POLYGON )
             polyset = &static_cast<PCB_SHAPE*>( item )->GetPolyShape();
         else
             return false;
@@ -2065,7 +2007,7 @@ int PCB_POINT_EDITOR::addCorner( const TOOL_EVENT& aEvent )
     BOARD_COMMIT commit( frame );
 
     if( item->Type() == PCB_ZONE_T || item->Type() == PCB_FP_ZONE_T
-        || ( graphicItem && graphicItem->GetShape() == EDA_SHAPE_TYPE::POLYGON ) )
+        || ( graphicItem && graphicItem->GetShape() == SHAPE_T::POLYGON ) )
     {
         unsigned int nearestIdx = 0;
         unsigned int nextNearestIdx = 0;
@@ -2136,7 +2078,7 @@ int PCB_POINT_EDITOR::addCorner( const TOOL_EVENT& aEvent )
         commit.Push( _( "Add a zone corner" ) );
     }
 
-    else if( graphicItem && graphicItem->GetShape() == EDA_SHAPE_TYPE::SEGMENT )
+    else if( graphicItem && graphicItem->GetShape() == SHAPE_T::SEGMENT )
     {
         commit.Modify( graphicItem );
 
@@ -2201,7 +2143,7 @@ int PCB_POINT_EDITOR::removeCorner( const TOOL_EVENT& aEvent )
     {
         PCB_SHAPE* shape = static_cast<PCB_SHAPE*>( item );
 
-        if( shape->GetShape() == EDA_SHAPE_TYPE::POLYGON )
+        if( shape->GetShape() == SHAPE_T::POLYGON )
             polygon = &shape->GetPolyShape();
     }
 

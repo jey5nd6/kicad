@@ -157,11 +157,11 @@ bool DIALOG_GRAPHIC_ITEM_PROPERTIES::TransferDataToWindow()
         return false;
 
     // Only an arc has a angle parameter. So do not show this parameter for other shapes
-    if( m_item->GetShape() != EDA_SHAPE_TYPE::ARC )
+    if( m_item->GetShape() != SHAPE_T::ARC )
         m_angle.Show( false );
 
     // Only a Bezeier curve has control points. So do not show these parameters for other shapes
-    if( m_item->GetShape() != EDA_SHAPE_TYPE::CURVE )
+    if( m_item->GetShape() != SHAPE_T::CURVE )
     {
         m_bezierCtrlPt1Label->Show( false );
         m_bezierCtrl1X.Show( false );
@@ -174,7 +174,7 @@ bool DIALOG_GRAPHIC_ITEM_PROPERTIES::TransferDataToWindow()
     // Change texts according to the segment shape:
     switch( m_item->GetShape() )
     {
-    case EDA_SHAPE_TYPE::CIRCLE:
+    case SHAPE_T::CIRCLE:
         SetTitle( _( "Circle Properties" ) );
         m_startPointLabel->SetLabel( _( "Center" ) );
 
@@ -187,25 +187,25 @@ bool DIALOG_GRAPHIC_ITEM_PROPERTIES::TransferDataToWindow()
         m_filledCtrl->Show( true );
         break;
 
-    case EDA_SHAPE_TYPE::ARC:
+    case SHAPE_T::ARC:
         SetTitle( _( "Arc Properties" ) );
-        m_AngleValue = m_item->GetAngle() / 10.0;
+        m_AngleValue = m_item->GetArcAngle() / 10.0;
         m_filledCtrl->Show( false );
         break;
 
-    case EDA_SHAPE_TYPE::POLYGON:
+    case SHAPE_T::POLYGON:
         SetTitle( _( "Polygon Properties" ) );
         m_sizerLeft->Show( false );
         m_filledCtrl->Show( true );
         break;
 
-    case EDA_SHAPE_TYPE::RECT:
+    case SHAPE_T::RECT:
         SetTitle( _( "Rectangle Properties" ) );
 
         m_filledCtrl->Show( true );
         break;
 
-    case EDA_SHAPE_TYPE::SEGMENT:
+    case SHAPE_T::SEGMENT:
         SetTitle( _( "Line Segment Properties" ) );
 
         if( m_item->GetStart().x == m_item->GetEnd().x )
@@ -220,12 +220,7 @@ bool DIALOG_GRAPHIC_ITEM_PROPERTIES::TransferDataToWindow()
         break;
     }
 
-    if( m_item->GetShape() == EDA_SHAPE_TYPE::ARC )
-    {
-        m_startX.SetValue( m_item->GetArcStart().x );
-        m_startY.SetValue( m_item->GetArcStart().y );
-    }
-    else if( m_flipStartEnd )
+    if( m_flipStartEnd )
     {
         m_startX.SetValue( m_item->GetEnd().x );
         m_startY.SetValue( m_item->GetEnd().y );
@@ -236,14 +231,9 @@ bool DIALOG_GRAPHIC_ITEM_PROPERTIES::TransferDataToWindow()
         m_startY.SetValue( m_item->GetStart().y );
     }
 
-    if( m_item->GetShape() == EDA_SHAPE_TYPE::CIRCLE )
+    if( m_item->GetShape() == SHAPE_T::CIRCLE )
     {
         m_endX.SetValue( m_item->GetRadius() );
-    }
-    else if( m_item->GetShape() == EDA_SHAPE_TYPE::ARC )
-    {
-        m_endX.SetValue( m_item->GetArcEnd().x );
-        m_endY.SetValue( m_item->GetArcEnd().y );
     }
     else if( m_flipStartEnd )
     {
@@ -292,11 +282,7 @@ bool DIALOG_GRAPHIC_ITEM_PROPERTIES::TransferDataFromWindow()
     BOARD_COMMIT commit( m_parent );
     commit.Modify( m_item );
 
-    if( m_item->GetShape() == EDA_SHAPE_TYPE::ARC )
-    {
-        m_item->SetArcStart( wxPoint( m_startX.GetValue(), m_startY.GetValue() ) );
-    }
-    else if( m_flipStartEnd )
+    if( m_flipStartEnd )
     {
         m_item->SetEndX( m_startX.GetValue() );
         m_item->SetEndY( m_startY.GetValue() );
@@ -307,13 +293,9 @@ bool DIALOG_GRAPHIC_ITEM_PROPERTIES::TransferDataFromWindow()
         m_item->SetStartY( m_startY.GetValue() );
     }
 
-    if( m_item->GetShape() == EDA_SHAPE_TYPE::CIRCLE )
+    if( m_item->GetShape() == SHAPE_T::CIRCLE )
     {
         m_item->SetEnd( m_item->GetStart() + wxPoint( m_endX.GetValue(), 0 ) );
-    }
-    else if( m_item->GetShape() == EDA_SHAPE_TYPE::ARC )
-    {
-        m_item->SetArcEnd( wxPoint( m_endX.GetValue(), m_endY.GetValue() ) );
     }
     else if( m_flipStartEnd )
     {
@@ -327,16 +309,10 @@ bool DIALOG_GRAPHIC_ITEM_PROPERTIES::TransferDataFromWindow()
     }
 
     // For Bezier curve: Set the two control points
-    if( m_item->GetShape() == EDA_SHAPE_TYPE::CURVE )
+    if( m_item->GetShape() == SHAPE_T::CURVE )
     {
         m_item->SetBezControl1( wxPoint( m_bezierCtrl1X.GetValue(), m_bezierCtrl1Y.GetValue() ) );
         m_item->SetBezControl2( wxPoint( m_bezierCtrl2X.GetValue(), m_bezierCtrl2Y.GetValue() ) );
-    }
-
-    if( m_item->GetShape() == EDA_SHAPE_TYPE::ARC )
-    {
-        m_item->SetArcCenter( GetArcCenter( m_item->GetArcStart(), m_item->GetArcEnd(), m_AngleValue ));
-        m_item->SetAngle( m_AngleValue * 10.0, false );
     }
 
     if( m_fp_item )
@@ -345,7 +321,7 @@ bool DIALOG_GRAPHIC_ITEM_PROPERTIES::TransferDataFromWindow()
         m_fp_item->SetStart0( m_fp_item->GetStart() );
         m_fp_item->SetEnd0( m_fp_item->GetEnd() );
 
-        if( m_fp_item->GetShape() == EDA_SHAPE_TYPE::CURVE )
+        if( m_fp_item->GetShape() == SHAPE_T::CURVE )
         {
             m_fp_item->SetBezier0_C1( wxPoint( m_bezierCtrl1X.GetValue(), m_bezierCtrl1Y.GetValue() ) );
             m_fp_item->SetBezier0_C2( wxPoint( m_bezierCtrl2X.GetValue(), m_bezierCtrl2Y.GetValue() ) );
@@ -383,33 +359,33 @@ bool DIALOG_GRAPHIC_ITEM_PROPERTIES::Validate()
     // Type specific checks.
     switch( m_item->GetShape() )
     {
-    case EDA_SHAPE_TYPE::ARC:
+    case SHAPE_T::ARC:
         // Check angle of arc.
         if( m_angle.GetValue() == 0 )
             error_msgs.Add( _( "The arc angle cannot be zero." ) );
 
         KI_FALLTHROUGH;
 
-    case EDA_SHAPE_TYPE::CIRCLE:
+    case SHAPE_T::CIRCLE:
         // Check radius.
         if( m_startX.GetValue() == m_endX.GetValue() && m_startY.GetValue() == m_endY.GetValue() )
             error_msgs.Add( _( "The radius cannot be zero." ) );
         break;
 
-    case EDA_SHAPE_TYPE::RECT:
+    case SHAPE_T::RECT:
         // Check for null rect.
         if( m_startX.GetValue() == m_endX.GetValue() && m_startY.GetValue() == m_endY.GetValue() )
             error_msgs.Add( _( "The rectangle cannot be empty." ) );
         break;
 
-    case EDA_SHAPE_TYPE::POLYGON:
-    case EDA_SHAPE_TYPE::SEGMENT:
-    case EDA_SHAPE_TYPE::CURVE:
+    case SHAPE_T::POLYGON:
+    case SHAPE_T::SEGMENT:
+    case SHAPE_T::CURVE:
         break;
 
     default:
         wxFAIL_MSG( "DIALOG_GRAPHIC_ITEM_PROPERTIES::Validate not implemented for shape "
-                    + m_item->EDA_SHAPE_TYPE_asString() );
+                    + m_item->SHAPE_T_asString() );
         break;
     }
 

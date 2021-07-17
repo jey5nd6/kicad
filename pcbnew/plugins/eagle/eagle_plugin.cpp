@@ -696,11 +696,10 @@ void EAGLE_PLUGIN::loadPlain( wxXmlNode* aGraphics )
                 else
                 {
                     wxPoint center = ConvertArcCenter( start, end, *w.curve );
+                    double  angle = *w.curve * -10.0;  // KiCad rotates the other way
 
-                    shape->SetShape( EDA_SHAPE_TYPE::ARC );
-                    shape->SetStart( center );
-                    shape->SetEnd( start );
-                    shape->SetAngle( *w.curve * -10.0 ); // KiCad rotates the other way
+                    shape->SetShape( SHAPE_T::ARC );
+                    shape->SetArcGeometry( center, start, angle );
                 }
 
                 shape->SetLayer( layer );
@@ -867,7 +866,7 @@ void EAGLE_PLUGIN::loadPlain( wxXmlNode* aGraphics )
                     PCB_SHAPE* shape = new PCB_SHAPE( m_board );
                     m_board->Add( shape, ADD_MODE::APPEND );
 
-                    shape->SetShape( EDA_SHAPE_TYPE::CIRCLE );
+                    shape->SetShape( SHAPE_T::CIRCLE );
                     shape->SetFilled( false );
                     shape->SetLayer( layer );
                     shape->SetStart( wxPoint( kicad_x( c.x ), kicad_y( c.y ) ) );
@@ -1731,19 +1730,24 @@ void EAGLE_PLUGIN::packageWire( FOOTPRINT* aFootprint, wxXmlNode* aTree ) const
 
     if( !w.curve )
     {
-        dwg = new FP_SHAPE( aFootprint, EDA_SHAPE_TYPE::SEGMENT );
+        dwg = new FP_SHAPE( aFootprint, SHAPE_T::SEGMENT );
 
         dwg->SetStart0( start );
         dwg->SetEnd0( end );
     }
     else
     {
-        dwg = new FP_SHAPE( aFootprint, EDA_SHAPE_TYPE::ARC );
-        wxPoint center = ConvertArcCenter( start, end, *w.curve );
+        dwg = new FP_SHAPE( aFootprint, SHAPE_T::ARC );
 
-        dwg->SetStart0( center );
-        dwg->SetEnd0( start );
-        dwg->SetAngle( *w.curve * -10.0 ); // KiCad rotates the other way
+        wxPoint center = ConvertArcCenter( start, end, *w.curve );
+        double  angle = *w.curve * -10.0;  // KiCad rotates the other way
+
+        dwg->SetArcGeometry( center, start, angle );
+
+        // Copy back to local properties
+        dwg->m_Start0      = dwg->GetStart();
+        dwg->m_ThirdPoint0 = dwg->GetThirdPoint();
+        dwg->m_End0        = dwg->GetEnd();
     }
 
     dwg->SetLayer( layer );
@@ -2008,7 +2012,7 @@ void EAGLE_PLUGIN::packageRectangle( FOOTPRINT* aFootprint, wxXmlNode* aTree ) c
             return;
         }
 
-        FP_SHAPE* dwg = new FP_SHAPE( aFootprint, EDA_SHAPE_TYPE::POLYGON );
+        FP_SHAPE* dwg = new FP_SHAPE( aFootprint, SHAPE_T::POLYGON );
 
         aFootprint->Add( dwg );
 
@@ -2123,7 +2127,7 @@ void EAGLE_PLUGIN::packagePolygon( FOOTPRINT* aFootprint, wxXmlNode* aTree ) con
             return;
         }
 
-        FP_SHAPE* dwg = new FP_SHAPE( aFootprint, EDA_SHAPE_TYPE::POLYGON );
+        FP_SHAPE* dwg = new FP_SHAPE( aFootprint, SHAPE_T::POLYGON );
 
         aFootprint->Add( dwg );
 
@@ -2193,7 +2197,7 @@ void EAGLE_PLUGIN::packageCircle( FOOTPRINT* aFootprint, wxXmlNode* aTree ) cons
             return;
         }
 
-        FP_SHAPE* gr = new FP_SHAPE( aFootprint, EDA_SHAPE_TYPE::CIRCLE );
+        FP_SHAPE* gr = new FP_SHAPE( aFootprint, SHAPE_T::CIRCLE );
 
         // with == 0 means filled circle
         if( width <= 0 )

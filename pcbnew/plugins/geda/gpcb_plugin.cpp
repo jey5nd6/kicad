@@ -464,7 +464,7 @@ FOOTPRINT* GPCB_FPL_CACHE::parseFOOTPRINT( LINE_READER* aLineReader )
 
             FP_SHAPE* shape = new FP_SHAPE( footprint.get() );
             shape->SetLayer( F_SilkS );
-            shape->SetShape( EDA_SHAPE_TYPE::SEGMENT );
+            shape->SetShape( SHAPE_T::SEGMENT );
             shape->SetStart0( wxPoint( parseInt( parameters[2], conv_unit ),
                                        parseInt( parameters[3], conv_unit ) ) );
             shape->SetEnd0( wxPoint( parseInt( parameters[4], conv_unit ),
@@ -488,7 +488,7 @@ FOOTPRINT* GPCB_FPL_CACHE::parseFOOTPRINT( LINE_READER* aLineReader )
             // Pcbnew does know ellipse so we must have Width = Height
             FP_SHAPE* shape = new FP_SHAPE( footprint.get() );
             shape->SetLayer( F_SilkS );
-            shape->SetShape( EDA_SHAPE_TYPE::ARC );
+            shape->SetShape( SHAPE_T::ARC );
             footprint->Add( shape );
 
             // for and arc: ibuf[3] = ibuf[4]. Pcbnew does not know ellipses
@@ -498,8 +498,6 @@ FOOTPRINT* GPCB_FPL_CACHE::parseFOOTPRINT( LINE_READER* aLineReader )
             wxPoint centre( parseInt( parameters[2], conv_unit ),
                             parseInt( parameters[3], conv_unit ) );
 
-            shape->SetStart0( centre );
-
             // Pcbnew start angles are inverted and 180 degrees from Geda PCB angles.
             double start_angle = parseInt( parameters[6], -10.0 ) + 1800.0;
 
@@ -508,18 +506,20 @@ FOOTPRINT* GPCB_FPL_CACHE::parseFOOTPRINT( LINE_READER* aLineReader )
 
             // Geda PCB does not support circles.
             if( sweep_angle == -3600.0 )
-                shape->SetShape( EDA_SHAPE_TYPE::CIRCLE );
+                shape->SetShape( SHAPE_T::CIRCLE );
 
-            // Angle value is clockwise in gpcb and Pcbnew.
-            shape->SetAngle( sweep_angle );
-            shape->SetEnd0( wxPoint( radius, 0 ) );
+            shape->m_Start0 = wxPoint( radius, 0 );
+            RotatePoint( &shape->m_Start0, -start_angle );
 
-            // Calculate start point coordinate of arc
-            wxPoint arcStart( shape->GetEnd0() );
-            RotatePoint( &arcStart, -start_angle );
-            shape->SetEnd0( centre + arcStart );
+            shape->m_ThirdPoint0 = shape->m_Start0;
+            RotatePoint( &shape->m_ThirdPoint0, sweep_angle / 2 );
+
+            shape->m_End0 = shape->m_Start0;
+            RotatePoint( &shape->m_End0, sweep_angle );
+
+            shape->Move( centre );
+
             shape->SetWidth( parseInt( parameters[8], conv_unit ) );
-            shape->SetDrawCoord();
             continue;
         }
 

@@ -1805,14 +1805,14 @@ double FOOTPRINT::GetCoverageArea( const BOARD_ITEM* aItem, const GENERAL_COLLEC
 
         switch( shape->GetShape() )
         {
-        case EDA_SHAPE_TYPE::SEGMENT:
-        case EDA_SHAPE_TYPE::ARC:
-        case EDA_SHAPE_TYPE::CURVE:
+        case SHAPE_T::SEGMENT:
+        case SHAPE_T::ARC:
+        case SHAPE_T::CURVE:
             return shape->GetWidth() * shape->GetWidth();
 
-        case EDA_SHAPE_TYPE::RECT:
-        case EDA_SHAPE_TYPE::CIRCLE:
-        case EDA_SHAPE_TYPE::POLYGON:
+        case SHAPE_T::RECT:
+        case SHAPE_T::CIRCLE:
+        case SHAPE_T::POLYGON:
         {
             if( !shape->IsFilled() )
                 return shape->GetWidth() * shape->GetWidth();
@@ -2044,7 +2044,6 @@ bool FOOTPRINT::cmp_drawings::operator()( const BOARD_ITEM* aFirst,
         TEST( dwgA->GetBezier0_C2().x, dwgB->GetBezier0_C2().x );
         TEST( dwgA->GetBezier0_C2().y, dwgB->GetBezier0_C2().y );
 
-        TEST( dwgA->GetAngle(), dwgB->GetAngle() );
         TEST( dwgA->GetWidth(), dwgB->GetWidth() );
     }
 

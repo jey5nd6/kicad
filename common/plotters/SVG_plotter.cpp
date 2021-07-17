@@ -165,7 +165,7 @@ SVG_PLOTTER::SVG_PLOTTER()
 {
     m_graphics_changed = true;
     SetTextMode( PLOT_TEXT_MODE::STROKE );
-    m_fillMode        = FILL_TYPE::NO_FILL; // or FILLED_SHAPE or FILLED_WITH_BG_BODYCOLOR
+    m_fillMode        = FILL_T::NO_FILL; // or FILLED_SHAPE or FILLED_WITH_BG_BODYCOLOR
     m_pen_rgb_color   = 0;       // current color value (black)
     m_brush_rgb_color = 0;       // current color value (black)
     m_dashed          = PLOT_DASH_TYPE::SOLID;
@@ -216,7 +216,7 @@ void SVG_PLOTTER::SetColor( const COLOR4D& color )
 }
 
 
-void SVG_PLOTTER::setFillMode( FILL_TYPE fill )
+void SVG_PLOTTER::setFillMode( FILL_T fill )
 {
     if( m_fillMode != fill )
     {
@@ -236,19 +236,19 @@ void SVG_PLOTTER::setSVGPlotStyle( bool aIsGroup, const std::string& aExtraStyle
 
     switch( m_fillMode )
     {
-    case FILL_TYPE::NO_FILL:
+    case FILL_T::NO_FILL:
         fputs( "fill-opacity:0.0; ", m_outputFile );
         break;
 
-    case FILL_TYPE::FILLED_SHAPE:
+    case FILL_T::FILLED_SHAPE:
         fputs( "fill-opacity:1.0; ", m_outputFile );
         break;
 
-    case FILL_TYPE::FILLED_WITH_BG_BODYCOLOR:
+    case FILL_T::FILLED_WITH_BG_BODYCOLOR:
         fputs( "fill-opacity:0.6; ", m_outputFile );
         break;
 
-    case FILL_TYPE::FILLED_WITH_COLOR:
+    case FILL_T::FILLED_WITH_COLOR:
         wxFAIL_MSG( "FILLED_WITH_COLOR not implemented"  );
         break;
     }
@@ -375,7 +375,7 @@ void SVG_PLOTTER::SetDash( PLOT_DASH_TYPE dashed )
 }
 
 
-void SVG_PLOTTER::Rect( const wxPoint& p1, const wxPoint& p2, FILL_TYPE fill, int width )
+void SVG_PLOTTER::Rect( const wxPoint& p1, const wxPoint& p2, FILL_T fill, int width )
 {
     EDA_RECT rect( p1, wxSize( p2.x -p1.x,  p2.y -p1.y ) );
     rect.Normalize();
@@ -411,7 +411,7 @@ void SVG_PLOTTER::Rect( const wxPoint& p1, const wxPoint& p2, FILL_TYPE fill, in
 }
 
 
-void SVG_PLOTTER::Circle( const wxPoint& pos, int diametre, FILL_TYPE fill, int width )
+void SVG_PLOTTER::Circle( const wxPoint& pos, int diametre, FILL_T fill, int width )
 {
     DPOINT  pos_dev = userToDeviceCoordinates( pos );
     double  radius  = userToDeviceSize( diametre / 2.0 );
@@ -420,9 +420,9 @@ void SVG_PLOTTER::Circle( const wxPoint& pos, int diametre, FILL_TYPE fill, int 
     SetCurrentLineWidth( width );
 
     // If diameter is less than width, switch to filled mode
-    if( fill == FILL_TYPE::NO_FILL && diametre < width )
+    if( fill == FILL_T::NO_FILL && diametre < width )
     {
-        setFillMode( FILL_TYPE::FILLED_SHAPE );
+        setFillMode( FILL_T::FILLED_SHAPE );
         SetCurrentLineWidth( 0 );
 
         radius = userToDeviceSize( ( diametre / 2.0 ) + ( width / 2.0 ) );
@@ -435,7 +435,7 @@ void SVG_PLOTTER::Circle( const wxPoint& pos, int diametre, FILL_TYPE fill, int 
 
 
 void SVG_PLOTTER::Arc( const wxPoint& centre, double StAngle, double EndAngle, int radius,
-                       FILL_TYPE fill, int width )
+                       FILL_T fill, int width )
 {
     /* Draws an arc of a circle, centered on (xc,yc), with starting point
      *  (x1, y1) and ending at (x2, y2). The current pen is used for the outline
@@ -447,7 +447,7 @@ void SVG_PLOTTER::Arc( const wxPoint& centre, double StAngle, double EndAngle, i
 
     if( radius <= 0 )
     {
-        Circle( centre, width, FILL_TYPE::FILLED_SHAPE, 0 );
+        Circle( centre, width, FILL_T::FILLED_SHAPE, 0 );
         return;
     }
 
@@ -514,7 +514,7 @@ void SVG_PLOTTER::Arc( const wxPoint& centre, double StAngle, double EndAngle, i
     // flag arc size (0 = small arc > 180 deg, 1 = large arc > 180 deg),
     // sweep arc ( 0 = CCW, 1 = CW),
     // end point
-    if( fill != FILL_TYPE::NO_FILL )
+    if( fill != FILL_T::NO_FILL )
     {
         // Filled arcs (in Eeschema) consist of the pie wedge and a stroke only on the arc
         // This needs to be drawn in two steps.
@@ -527,7 +527,7 @@ void SVG_PLOTTER::Arc( const wxPoint& centre, double StAngle, double EndAngle, i
                  end.x, end.y, centre_dev.x, centre_dev.y  );
     }
 
-    setFillMode( FILL_TYPE::NO_FILL );
+    setFillMode( FILL_T::NO_FILL );
     SetCurrentLineWidth( width );
     fprintf( m_outputFile, "<path d=\"M%f %f A%f %f 0.0 %d %d %f %f\" />\n",
              start.x, start.y, radius_dev, radius_dev,
@@ -541,7 +541,7 @@ void SVG_PLOTTER::BezierCurve( const wxPoint& aStart, const wxPoint& aControl1,
                                int aTolerance, int aLineThickness )
 {
 #if 1
-    setFillMode( FILL_TYPE::NO_FILL );
+    setFillMode( FILL_T::NO_FILL );
     SetCurrentLineWidth( aLineThickness );
 
     DPOINT start  = userToDeviceCoordinates( aStart );
@@ -559,7 +559,7 @@ void SVG_PLOTTER::BezierCurve( const wxPoint& aStart, const wxPoint& aControl1,
 }
 
 
-void SVG_PLOTTER::PlotPoly( const std::vector<wxPoint>& aCornerList, FILL_TYPE aFill,
+void SVG_PLOTTER::PlotPoly( const std::vector<wxPoint>& aCornerList, FILL_T aFill,
                             int aWidth, void* aData )
 {
     if( aCornerList.size() <= 1 )
@@ -571,16 +571,16 @@ void SVG_PLOTTER::PlotPoly( const std::vector<wxPoint>& aCornerList, FILL_TYPE a
 
     switch( aFill )
     {
-    case FILL_TYPE::NO_FILL:
+    case FILL_T::NO_FILL:
         setSVGPlotStyle( false, "fill:none" );
         break;
 
-    case FILL_TYPE::FILLED_WITH_BG_BODYCOLOR:
-    case FILL_TYPE::FILLED_SHAPE:
+    case FILL_T::FILLED_WITH_BG_BODYCOLOR:
+    case FILL_T::FILLED_SHAPE:
         setSVGPlotStyle( false, "fill-rule:evenodd;" );
         break;
 
-    case FILL_TYPE::FILLED_WITH_COLOR:
+    case FILL_T::FILLED_WITH_COLOR:
         wxFAIL_MSG( "FILLED_WITH_COLOR not implemented"  );
         break;
     }
@@ -674,9 +674,9 @@ void SVG_PLOTTER::PenTo( const wxPoint& pos, char plume )
 
         // Ensure we do not use a fill mode when moving the pen,
         // in SVG mode (i;e. we are plotting only basic lines, not a filled area
-        if( m_fillMode != FILL_TYPE::NO_FILL )
+        if( m_fillMode != FILL_T::NO_FILL )
         {
-            setFillMode( FILL_TYPE::NO_FILL );
+            setFillMode( FILL_T::NO_FILL );
             setSVGPlotStyle();
         }
 
@@ -774,7 +774,7 @@ void SVG_PLOTTER::Text( const wxPoint&              aPos,
                         bool                        aMultilineAllowed,
                         void*                       aData )
 {
-    setFillMode( FILL_TYPE::NO_FILL );
+    setFillMode( FILL_T::NO_FILL );
     SetColor( aColor );
     SetCurrentLineWidth( aWidth );
 

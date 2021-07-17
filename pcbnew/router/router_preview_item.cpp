@@ -170,7 +170,7 @@ void ROUTER_PREVIEW_ITEM::drawLineChain( const SHAPE_LINE_CHAIN_BASE* aL, KIGFX:
         double start_angle = DEG2RAD( arc.GetStartAngle() );
         double angle = DEG2RAD( arc.GetCentralAngle() );
 
-        gal->DrawArc( arc.GetCenter(), arc.GetRadius(), start_angle, start_angle + angle);
+        gal->DrawArc( arc.GetCenter(), arc.GetRadius(), start_angle, start_angle + angle );
     }
 
     if( aL->IsClosed() )

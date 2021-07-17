@@ -33,11 +33,17 @@
 #include <pcb_shape.h>
 
 
-PCB_SHAPE::PCB_SHAPE( BOARD_ITEM* aParent, KICAD_T idtype, EDA_SHAPE_TYPE shapetype ) :
+PCB_SHAPE::PCB_SHAPE( BOARD_ITEM* aParent, KICAD_T idtype, SHAPE_T shapetype ) :
     BOARD_ITEM( aParent, idtype ),
-    EDA_SHAPE( shapetype, Millimeter2iu( DEFAULT_LINE_WIDTH ) )
+    EDA_SHAPE( shapetype, Millimeter2iu( DEFAULT_LINE_WIDTH ), FILL_T::NO_FILL )
 {
-    m_flags = 0;
+}
+
+
+PCB_SHAPE::PCB_SHAPE( BOARD_ITEM* aParent, SHAPE_T shapetype ) :
+    BOARD_ITEM( aParent, PCB_SHAPE_T ),
+    EDA_SHAPE( shapetype, Millimeter2iu( DEFAULT_LINE_WIDTH ), FILL_T::NO_FILL )
+{
 }
 
 
@@ -136,7 +142,7 @@ const BOX2I PCB_SHAPE::ViewBBox() const
 {
     // For arcs - do not include the center point in the bounding box,
     // it is redundant for displaying an arc
-    if( GetShape() == EDA_SHAPE_TYPE::ARC )
+    if( GetShape() == SHAPE_T::ARC )
     {
         EDA_RECT bbox;
         bbox.SetOrigin( GetEnd() );
@@ -170,27 +176,6 @@ void PCB_SHAPE::SwapData( BOARD_ITEM* aImage )
     std::swap( m_status, image->m_status );
     std::swap( m_parent, image->m_parent );
     std::swap( m_forceVisible, image->m_forceVisible );
-}
-
-
-bool PCB_SHAPE::cmp_drawings::operator()( const BOARD_ITEM* aFirst, const BOARD_ITEM* aSecond ) const
-{
-    if( aFirst->Type() != aSecond->Type() )
-        return aFirst->Type() < aSecond->Type();
-
-    if( aFirst->GetLayer() != aSecond->GetLayer() )
-        return aFirst->GetLayer() < aSecond->GetLayer();
-
-    if( aFirst->Type() == PCB_SHAPE_T )
-    {
-        const PCB_SHAPE* dwgA = static_cast<const PCB_SHAPE*>( aFirst );
-        const PCB_SHAPE* dwgB = static_cast<const PCB_SHAPE*>( aSecond );
-
-        if( dwgA->GetShape() != dwgB->GetShape() )
-            return dwgA->GetShape() < dwgB->GetShape();
-    }
-
-    return aFirst->m_Uuid < aSecond->m_Uuid;
 }
 
 

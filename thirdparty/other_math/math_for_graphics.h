@@ -10,7 +10,7 @@
  * if no intersection, returns min distance in dist
  */
 bool FindLineSegmentIntersection( double a, double b, int xi, int yi, int xf, int yf,
-                double& x1, double& y1, double * dist=NULL );
+                                  double& x1, double& y1, double* dist = nullptr );
 
 /* Function FindSegmentIntersections
  * find intersections between line segment (xi,yi) to (xf,yf)
@@ -35,7 +35,8 @@ bool FindSegmentIntersections( int xi, int yi, int xf, int yf,
  */
 bool TestForIntersectionOfStraightLineSegments( int x1i, int y1i, int x1f, int y1f,
                                        int x2i, int y2i, int x2f, int y2f,
-                                       int * x=NULL, int * y=NULL, double * dist=NULL );
+                                       int* x = nullptr, int * y = nullptr,
+                                       double* dist = nullptr );
 
 /* Function GetClearanceBetweenSegments
  * Get clearance between 2 segments
@@ -44,7 +45,7 @@ bool TestForIntersectionOfStraightLineSegments( int x1i, int y1i, int x1f, int y
  */
 int GetClearanceBetweenSegments( int x1i, int y1i, int x1f, int y1f, int w1,
                                    int x2i, int y2i, int x2f, int y2f, int w2,
-                                   int max_cl, int * x, int * y );
+                                   int max_cl, int* x, int* y );
 
 /**
  * Function GetPointToLineSegmentDistance
@@ -61,7 +62,7 @@ double GetPointToLineSegmentDistance( int x, int y, int xi, int yi, int xf, int 
  * returns closest point on line in xpp, ypp
  */
 double GetPointToLineDistance( double a, double b, int x, int y,
-                               double * xp=NULL, double * yp=NULL );
+                               double* xp = nullptr, double* yp = nullptr );
 
 inline double Distance( double x1, double y1, double x2, double y2 )
 {

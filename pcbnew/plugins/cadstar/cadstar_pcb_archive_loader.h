@@ -347,10 +347,10 @@ private:
 
     /**
      * @brief Returns a SHAPE_LINE_CHAIN object from a series of PCB_SHAPE objects
-     * @param aDrawSegments
+     * @param aShapes
      * @return
      */
-    SHAPE_LINE_CHAIN getLineChainFromDrawsegments( const std::vector<PCB_SHAPE*> aDrawSegments );
+    SHAPE_LINE_CHAIN getLineChainFromDrawsegments( const std::vector<PCB_SHAPE*> aShapes );
 
     /**
      * @brief Returns a vector of pointers to TRACK/ARC objects. Caller owns the objects

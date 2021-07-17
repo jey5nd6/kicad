@@ -1,7 +1,7 @@
 /*
  * This program source code file is part of KiCad, a free EDA CAD application.
  *
- * Copyright (C) 2004-2020 KiCad Developers.
+ * Copyright (C) 2004-2021 KiCad Developers.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -22,7 +22,6 @@
  */
 
 #include <common.h>
-#include <board.h>
 #include <board_design_settings.h>
 #include <footprint.h>
 #include <pcb_shape.h>
@@ -32,8 +31,8 @@
 
 #include <geometry/seg.h>
 #include <geometry/shape_poly_set.h>
-#include <geometry/shape_rect.h>
 #include <geometry/shape_segment.h>
+#include <math_for_graphics.h>
 
 #include <drc/drc_engine.h>
 #include <drc/drc_rtree.h>

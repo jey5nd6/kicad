@@ -163,8 +163,8 @@ public:
     void Plot( PLOTTER* aPlotter, const wxPoint& aOffset, bool aFill,
                const TRANSFORM& aTransform ) const override;
 
-    int GetWidth() const override { return GetTextThickness(); }
-    void SetWidth( int aWidth ) override { SetTextThickness( aWidth ); }
+    int GetWidth() const { return GetTextThickness(); }
+    void SetWidth( int aWidth ) { SetTextThickness( aWidth ); }
 
     wxString GetSelectMenuText( EDA_UNITS aUnits ) const override;
 

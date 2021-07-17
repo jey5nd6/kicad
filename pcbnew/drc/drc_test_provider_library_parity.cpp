@@ -72,37 +72,8 @@ public:
 
 #define TEST( a, b ) { if( a != b ) return false; }
 #define TEST_PADS( a, b ) { if( !padsSame( a, b ) ) return false; }
-#define TEST_SHAPES( a, b ) { if( !shapesSame( a, b ) ) return false; }
-#define TEST_PRIMITIVES( a, b ) { if( !primitivesSame( a, b ) ) return false; }
 #define TEST_ZONES( a, b ) { if( !zonesSame( a, b ) ) return false; }
 #define TEST_MODELS( a, b ) { if( !modelsSame( a, b ) ) return false; }
-
-
-bool primitivesSame( const std::shared_ptr<PCB_SHAPE>& a, const std::shared_ptr<PCB_SHAPE>& b )
-{
-    TEST( a->GetShape(), b->GetShape() );
-
-    TEST( a->GetStart(), b->GetStart() );
-    TEST( a->GetEnd(), b->GetEnd() );
-    TEST( a->GetThirdPoint(), b->GetThirdPoint() );
-    TEST( a->GetAngle(), b->GetAngle() );
-    TEST( a->GetBezControl1(), b->GetBezControl1() );
-    TEST( a->GetBezControl2(), b->GetBezControl2() );
-
-    TEST( a->GetBezierPoints().size(), b->GetBezierPoints().size() );
-    TEST( a->GetPolyShape().TotalVertices(), b->GetPolyShape().TotalVertices() );
-
-    for( size_t ii = 0; ii < a->GetBezierPoints().size(); ++ii )
-        TEST( a->GetBezierPoints()[ii], b->GetBezierPoints()[ii] );
-
-    for( int ii = 0; ii < a->GetPolyShape().TotalVertices(); ++ii )
-        TEST( a->GetPolyShape().CVertex( ii ), b->GetPolyShape().CVertex( ii ) );
-
-    TEST( a->GetWidth(), b->GetWidth() );
-    TEST( a->IsFilled(), b->IsFilled() );
-
-    return true;
-}
 
 
 bool padsSame( PAD* a, PAD* b )
@@ -150,60 +121,10 @@ bool padsSame( PAD* a, PAD* b )
     TEST( a->GetPrimitives().size(), b->GetPrimitives().size() );
 
     for( size_t ii = 0; ii < a->GetPrimitives().size(); ++ii )
-        TEST_PRIMITIVES( a->GetPrimitives()[ii], b->GetPrimitives()[ii] );
-
-    return true;
-}
-
-
-bool shapesSame( FP_SHAPE* a, FP_SHAPE* b )
-{
-    TEST( a->GetShape(), b->GetShape() );
-
-    TEST( a->GetStart0(), b->GetStart0() );
-    TEST( a->GetEnd0(), b->GetEnd0() );
-    TEST( a->GetThirdPoint0(), b->GetThirdPoint0() );
-    TEST( a->GetAngle(), b->GetAngle() );
-    TEST( a->GetBezier0_C1(), b->GetBezier0_C1() );
-    TEST( a->GetBezier0_C2(), b->GetBezier0_C2() );
-
-    TEST( a->GetBezierPoints().size(), b->GetBezierPoints().size() );
-    TEST( a->GetPolyShape().TotalVertices(), b->GetPolyShape().TotalVertices() );
-
-    for( size_t ii = 0; ii < a->GetBezierPoints().size(); ++ii )
-        TEST( a->GetBezierPoints()[ii], b->GetBezierPoints()[ii] );
-
-    for( int ii = 0; ii < a->GetPolyShape().TotalVertices(); ++ii )
-        TEST( a->GetPolyShape().CVertex( ii ), b->GetPolyShape().CVertex( ii ) );
-
-    TEST( a->GetWidth(), b->GetWidth() );
-    TEST( a->IsFilled(), b->IsFilled() );
-
-    TEST( a->GetLayer(), b->GetLayer() );
-
-    return true;
-}
-
-
-bool textsSame( FP_TEXT* a, FP_TEXT* b )
-{
-    TEST( a->GetLayer(), b->GetLayer() );
-    TEST( a->IsKeepUpright(), b->IsKeepUpright() );
-
-    TEST( a->GetText(), b->GetText() );
-
-    TEST( a->GetTextThickness(), b->GetTextThickness() );
-    TEST( a->GetTextAngle(), b->GetTextAngle() );
-    TEST( a->IsItalic(), b->IsItalic() );
-    TEST( a->IsBold(), b->IsBold() );
-    TEST( a->IsVisible(), b->IsVisible() );
-    TEST( a->IsMirrored(), b->IsMirrored() );
-
-    TEST( a->GetHorizJustify(), b->GetHorizJustify() );
-    TEST( a->GetVertJustify(), b->GetVertJustify() );
-
-    TEST( a->GetTextSize(), b->GetTextSize() );
-    TEST( a->GetPos0(), b->GetPos0() );
+    {
+        if( a->GetPrimitives()[ii]->EDA_SHAPE::Compare( b->GetPrimitives()[ii].get() ) != 0 )
+            return false;
+    }
 
     return true;
 }
@@ -334,8 +255,19 @@ bool footprintsSame( std::shared_ptr<FOOTPRINT>& a, FOOTPRINT* b )
 
     for( auto aIt = aShapes.begin(), bIt = bShapes.begin(); aIt != aShapes.end(); aIt++, bIt++ )
     {
-        if( ( *aIt )->Type() == PCB_FP_SHAPE_T )
-            TEST_SHAPES( static_cast<FP_SHAPE*>( *aIt ), static_cast<FP_SHAPE*>( *bIt ) );
+        FP_SHAPE* aShape = static_cast<FP_SHAPE*>( *aIt );
+        FP_SHAPE* bShape = static_cast<FP_SHAPE*>( *bIt );
+
+        // aShape->SetLocalCoord();   // a is from library footprint which is normalized
+        bShape->SetLocalCoord();
+
+        int cmp = aShape->EDA_SHAPE::Compare( bShape );
+
+        // aShape->SetDrawCoord();    // a is from library footprint which is normalized
+        bShape->SetDrawCoord();
+
+        if( cmp != 0 )
+            return false;
     }
 
     for( auto aIt = aZones.begin(), bIt = bZones.begin(); aIt != aZones.end(); aIt++, bIt++ )

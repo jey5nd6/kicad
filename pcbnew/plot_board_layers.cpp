@@ -720,7 +720,7 @@ void PlotLayerOutlines( BOARD* aBoard, PLOTTER* aPlotter, LSET aLayerMask,
                 cornerList.clear();
                 const SHAPE_LINE_CHAIN& path = (kk == 0) ? outlines.COutline( ii ) : outlines.CHole( ii, kk - 1 );
 
-                aPlotter->PlotPoly( path, FILL_TYPE::NO_FILL );
+                aPlotter->PlotPoly( path, FILL_T::NO_FILL );
             }
         }
 
@@ -742,7 +742,7 @@ void PlotLayerOutlines( BOARD* aBoard, PLOTTER* aPlotter, LSET aLayerMask,
                     if( hole.x == hole.y )
                     {
                         hole.x = std::min( smallDrill, hole.x );
-                        aPlotter->Circle( pad->GetPosition(), hole.x, FILL_TYPE::NO_FILL );
+                        aPlotter->Circle( pad->GetPosition(), hole.x, FILL_T::NO_FILL );
                     }
                     else
                     {
@@ -763,7 +763,7 @@ void PlotLayerOutlines( BOARD* aBoard, PLOTTER* aPlotter, LSET aLayerMask,
 
             if( via && via->IsOnLayer( layer ) )    // via holes can be not through holes
             {
-                aPlotter->Circle( via->GetPosition(), via->GetDrillValue(), FILL_TYPE::NO_FILL );
+                aPlotter->Circle( via->GetPosition(), via->GetDrillValue(), FILL_T::NO_FILL );
             }
         }
     }
@@ -976,7 +976,7 @@ void PlotSolderMaskLayer( BOARD *aBoard, PLOTTER* aPlotter, LSET aLayerMask,
         if( curr_area < poly_min_area_mm2 )
             continue;
 
-        aPlotter->PlotPoly( path, FILL_TYPE::FILLED_SHAPE );
+        aPlotter->PlotPoly( path, FILL_T::FILLED_SHAPE );
     }
 #endif
 }
@@ -1080,7 +1080,7 @@ static void FillNegativeKnockout( PLOTTER *aPlotter, const EDA_RECT &aBbbox )
     aPlotter->SetColor( WHITE );        // Which will be plotted as black
     EDA_RECT area = aBbbox;
     area.Inflate( margin );
-    aPlotter->Rect( area.GetOrigin(), area.GetEnd(), FILL_TYPE::FILLED_SHAPE );
+    aPlotter->Rect( area.GetOrigin(), area.GetEnd(), FILL_T::FILLED_SHAPE );
     aPlotter->SetColor( BLACK );
 }
 

@@ -1109,7 +1109,7 @@ PAD* CADSTAR_PCB_ARCHIVE_LOADER::getKiCadPad( const COMPONENT_PAD& aCadstarPad, 
                                                        ERROR_LOC::ERROR_INSIDE );
 
             PCB_SHAPE* padShape = new PCB_SHAPE;
-            padShape->SetShape( EDA_SHAPE_TYPE::POLYGON );
+            padShape->SetShape( SHAPE_T::POLYGON );
             padShape->SetFilled( true );
             padShape->SetPolyShape( padOutline );
             padShape->SetWidth( 0 );
@@ -1971,7 +1971,7 @@ void CADSTAR_PCB_ARCHIVE_LOADER::loadCoppers()
                 {
                     SHAPE_POLY_SET segment;
 
-                    if( seg->GetShape() == EDA_SHAPE_TYPE::ARC )
+                    if( seg->GetShape() == SHAPE_T::ARC )
                     {
                         TransformArcToPolygon( segment, seg->GetStart(), seg->GetArcMid(),
                                                seg->GetEnd(), copperWidth, ARC_HIGH_DEF,
@@ -1980,7 +1980,8 @@ void CADSTAR_PCB_ARCHIVE_LOADER::loadCoppers()
                     else
                     {
                         TransformOvalToPolygon( segment, seg->GetStart(), seg->GetEnd(),
-                                                copperWidth, ARC_HIGH_DEF, ERROR_LOC::ERROR_INSIDE );
+                                                copperWidth, ARC_HIGH_DEF,
+                                                ERROR_LOC::ERROR_INSIDE );
                     }
 
                     rawPolys.BooleanAdd( segment, SHAPE_POLY_SET::PM_STRICTLY_SIMPLE );
@@ -2613,14 +2614,9 @@ void CADSTAR_PCB_ARCHIVE_LOADER::drawCadstarShape( const SHAPE& aCadstarShape,
         PCB_SHAPE* shape;
 
         if( isFootprint( aContainer ) )
-        {
-            shape = new FP_SHAPE( (FOOTPRINT*) aContainer, EDA_SHAPE_TYPE::POLYGON );
-        }
+            shape = new FP_SHAPE( (FOOTPRINT*) aContainer, SHAPE_T::POLYGON );
         else
-        {
-            shape = new PCB_SHAPE( aContainer );
-            shape->SetShape( EDA_SHAPE_TYPE::POLYGON );
-        }
+            shape = new PCB_SHAPE( aContainer, SHAPE_T::POLYGON );
 
         shape->SetFilled( true );
 
@@ -2720,7 +2716,7 @@ PCB_SHAPE* CADSTAR_PCB_ARCHIVE_LOADER::getDrawSegmentFromVertex( const POINT& aC
                                                                  const wxPoint& aTransformCentre,
                                                                  const bool& aMirrorInvert )
 {
-    PCB_SHAPE* ds = nullptr;
+    PCB_SHAPE* shape = nullptr;
     bool       cw = false;
     double     arcStartAngle, arcEndAngle, arcAngle;
 
@@ -2730,27 +2726,24 @@ PCB_SHAPE* CADSTAR_PCB_ARCHIVE_LOADER::getDrawSegmentFromVertex( const POINT& aC
 
     if( aCadstarVertex.Type == VERTEX_TYPE::ANTICLOCKWISE_SEMICIRCLE
             || aCadstarVertex.Type == VERTEX_TYPE::CLOCKWISE_SEMICIRCLE )
+    {
         centerPoint = ( startPoint + endPoint ) / 2;
+    }
     else
+    {
         centerPoint = getKiCadPoint( aCadstarVertex.Center );
+    }
 
     switch( aCadstarVertex.Type )
     {
-
     case VERTEX_TYPE::POINT:
-
         if( isFootprint( aContainer ) )
-        {
-            ds = new FP_SHAPE( static_cast<FOOTPRINT*>( aContainer ), EDA_SHAPE_TYPE::SEGMENT );
-        }
+            shape = new FP_SHAPE( static_cast<FOOTPRINT*>( aContainer ), SHAPE_T::SEGMENT );
         else
-        {
-            ds = new PCB_SHAPE( aContainer );
-            ds->SetShape( EDA_SHAPE_TYPE::SEGMENT );
-        }
+            shape = new PCB_SHAPE( aContainer, SHAPE_T::SEGMENT );
 
-        ds->SetStart( startPoint );
-        ds->SetEnd( endPoint );
+        shape->SetStart( startPoint );
+        shape->SetEnd( endPoint );
         break;
 
     case VERTEX_TYPE::CLOCKWISE_SEMICIRCLE:
@@ -2760,58 +2753,46 @@ PCB_SHAPE* CADSTAR_PCB_ARCHIVE_LOADER::getDrawSegmentFromVertex( const POINT& aC
 
     case VERTEX_TYPE::ANTICLOCKWISE_SEMICIRCLE:
     case VERTEX_TYPE::ANTICLOCKWISE_ARC:
-
         if( isFootprint( aContainer ) )
-        {
-            ds = new FP_SHAPE( (FOOTPRINT*) aContainer, EDA_SHAPE_TYPE::ARC );
-        }
+            shape = new FP_SHAPE( static_cast<FOOTPRINT*>( aContainer ), SHAPE_T::ARC );
         else
-        {
-            ds = new PCB_SHAPE( aContainer );
-            ds->SetShape( EDA_SHAPE_TYPE::ARC );
-        }
-
-        ds->SetArcStart( startPoint );
-        ds->SetArcCenter( centerPoint );
+            shape = new PCB_SHAPE( aContainer, SHAPE_T::ARC );
 
         arcStartAngle = getPolarAngle( startPoint - centerPoint );
         arcEndAngle   = getPolarAngle( endPoint - centerPoint );
-        arcAngle      = arcEndAngle - arcStartAngle;
+        arcAngle      = cw ? arcEndAngle - arcStartAngle : arcStartAngle - arcEndAngle;
         //TODO: detect if we are supposed to draw a circle instead (i.e. two SEMICIRCLEs
         // with opposite start/end points and same centre point)
 
-        if( cw )
-            ds->SetAngle( NormalizeAnglePos( arcAngle ) );
-        else
-            ds->SetAngle( NormalizeAngleNeg( arcAngle ) );
+        shape->SetArcGeometry( centerPoint, startPoint, arcAngle );
 
         break;
     }
 
     //Apply transforms
     if( aMirrorInvert )
-        ds->Flip( aTransformCentre, true );
+        shape->Flip( aTransformCentre, true );
 
     if( aScalingFactor != 1.0 )
     {
-        ds->Move( -aTransformCentre );
-        ds->Scale( aScalingFactor );
-        ds->Move( aTransformCentre );
+        shape->Move( -aTransformCentre );
+        shape->Scale( aScalingFactor );
+        shape->Move( aTransformCentre );
     }
 
     if( aRotationAngle != 0.0 )
-        ds->Rotate( aTransformCentre, aRotationAngle );
+        shape->Rotate( aTransformCentre, aRotationAngle );
 
     if( aMoveVector != wxPoint{ 0, 0 } )
-        ds->Move( aMoveVector );
+        shape->Move( aMoveVector );
 
-    if( isFootprint( aContainer ) && ds != nullptr )
-        static_cast<FP_SHAPE*>( ds )->SetLocalCoord();
+    if( isFootprint( aContainer ) && shape != nullptr )
+        static_cast<FP_SHAPE*>( shape )->SetLocalCoord();
 
     if( !aCadstarGroupID.IsEmpty() )
-        addToGroup( aCadstarGroupID, ds );
+        addToGroup( aCadstarGroupID, shape );
 
-    return ds;
+    return shape;
 }
 
 
@@ -2903,40 +2884,43 @@ SHAPE_POLY_SET CADSTAR_PCB_ARCHIVE_LOADER::getPolySetFromCadstarShape( const SHA
 }
 
 
-SHAPE_LINE_CHAIN CADSTAR_PCB_ARCHIVE_LOADER::getLineChainFromDrawsegments( const std::vector<PCB_SHAPE*> aDrawsegments )
+SHAPE_LINE_CHAIN CADSTAR_PCB_ARCHIVE_LOADER::getLineChainFromDrawsegments( const std::vector<PCB_SHAPE*> aShapes )
 {
     SHAPE_LINE_CHAIN lineChain;
 
-    for( PCB_SHAPE* ds : aDrawsegments )
+    for( PCB_SHAPE* shape : aShapes )
     {
-        switch( ds->GetShape() )
+        switch( shape->GetShape() )
         {
-        case EDA_SHAPE_TYPE::ARC:
+        case SHAPE_T::ARC:
         {
-            if( ds->GetClass() == wxT( "MGRAPHIC" ) )
+            if( shape->GetClass() == wxT( "MGRAPHIC" ) )
             {
-                FP_SHAPE* em = (FP_SHAPE*) ds;
-                SHAPE_ARC arc( em->GetStart0(), em->GetEnd0(), (double) em->GetAngle() / 10.0 );
+                FP_SHAPE* fp_shape = (FP_SHAPE*) shape;
+                SHAPE_ARC arc( fp_shape->GetCenter0(), fp_shape->GetStart0(),
+                               (double) fp_shape->GetArcAngle() / 10.0 );
                 lineChain.Append( arc );
             }
             else
             {
-                SHAPE_ARC arc( ds->GetCenter(), ds->GetArcStart(), (double) ds->GetAngle() / 10.0 );
+                SHAPE_ARC arc( shape->GetCenter(), shape->GetStart(),
+                               (double) shape->GetArcAngle() / 10.0 );
                 lineChain.Append( arc );
             }
         }
         break;
-        case EDA_SHAPE_TYPE::SEGMENT:
-            if( ds->GetClass() == wxT( "MGRAPHIC" ) )
+
+        case SHAPE_T::SEGMENT:
+            if( shape->GetClass() == wxT( "MGRAPHIC" ) )
             {
-                FP_SHAPE* em = (FP_SHAPE*) ds;
+                FP_SHAPE* em = (FP_SHAPE*) shape;
                 lineChain.Append( em->GetStart0().x, em->GetStart0().y );
                 lineChain.Append( em->GetEnd0().x, em->GetEnd0().y );
             }
             else
             {
-                lineChain.Append( ds->GetStartX(), ds->GetStartY() );
-                lineChain.Append( ds->GetEndX(), ds->GetEndY() );
+                lineChain.Append( shape->GetStartX(), shape->GetStartY() );
+                lineChain.Append( shape->GetEndX(), shape->GetEndY() );
             }
             break;
 
@@ -2989,27 +2973,30 @@ std::vector<PCB_TRACK*> CADSTAR_PCB_ARCHIVE_LOADER::makeTracksFromDrawsegments(
                 }
             };
 
-    for( PCB_SHAPE* ds : aDrawsegments )
+    for( PCB_SHAPE* shape : aDrawsegments )
     {
-        switch( ds->GetShape() )
+        switch( shape->GetShape() )
         {
-        case EDA_SHAPE_TYPE::ARC:
-            if( ds->GetClass() == wxT( "MGRAPHIC" ) )
+        case SHAPE_T::ARC:
+            if( shape->GetClass() == wxT( "MGRAPHIC" ) )
             {
-                FP_SHAPE* em = (FP_SHAPE*) ds;
-                SHAPE_ARC arc( em->GetStart0(), em->GetEnd0(), (double) em->GetAngle() / 10.0 );
+                FP_SHAPE* fp_shape = (FP_SHAPE*) shape;
+                SHAPE_ARC arc( fp_shape->GetCenter0(), fp_shape->GetStart0(),
+                               (double) fp_shape->GetArcAngle() / 10.0 );
                 track = new PCB_ARC( aParentContainer, &arc );
             }
             else
             {
-                SHAPE_ARC arc( ds->GetCenter(), ds->GetArcStart(), (double) ds->GetAngle() / 10.0 );
+                SHAPE_ARC arc( shape->GetCenter(), shape->GetStart(),
+                               (double) shape->GetArcAngle() / 10.0 );
                 track = new PCB_ARC( aParentContainer, &arc );
             }
             break;
-        case EDA_SHAPE_TYPE::SEGMENT:
-            if( ds->GetClass() == wxT( "MGRAPHIC" ) )
+
+        case SHAPE_T::SEGMENT:
+            if( shape->GetClass() == wxT( "MGRAPHIC" ) )
             {
-                FP_SHAPE* em = (FP_SHAPE*) ds;
+                FP_SHAPE* em = (FP_SHAPE*) shape;
                 track = new PCB_TRACK( aParentContainer );
                 track->SetStart( em->GetStart0() );
                 track->SetEnd( em->GetEnd0() );
@@ -3017,8 +3004,8 @@ std::vector<PCB_TRACK*> CADSTAR_PCB_ARCHIVE_LOADER::makeTracksFromDrawsegments(
             else
             {
                 track = new PCB_TRACK( aParentContainer );
-                track->SetStart( ds->GetStart() );
-                track->SetEnd( ds->GetEnd() );
+                track->SetStart( shape->GetStart() );
+                track->SetEnd( shape->GetEnd() );
             }
             break;
 
@@ -3028,19 +3015,19 @@ std::vector<PCB_TRACK*> CADSTAR_PCB_ARCHIVE_LOADER::makeTracksFromDrawsegments(
         }
 
         if( aWidthOverride == -1 )
-            track->SetWidth( ds->GetWidth() );
+            track->SetWidth( shape->GetWidth() );
         else
             track->SetWidth( aWidthOverride );
 
         if( aLayerOverride == PCB_LAYER_ID::UNDEFINED_LAYER )
-            track->SetLayer( ds->GetLayer() );
+            track->SetLayer( shape->GetLayer() );
         else
             track->SetLayer( aLayerOverride );
 
         if( aNet != nullptr )
             track->SetNet( aNet );
 
-        track->SetLocked( ds->IsLocked() );
+        track->SetLocked( shape->IsLocked() );
 
         // Apply route offsetting, mimmicking the behaviour of the CADSTAR post processor
         if( prevTrack != nullptr )

@@ -430,7 +430,7 @@ void EDA_SHAPE::TransformShapeWithClearanceToPolygon( SHAPE_POLY_SET& aCornerBuf
 
     switch( m_shape )
     {
-    case EDA_SHAPE_TYPE::CIRCLE:
+    case SHAPE_T::CIRCLE:
         if( IsFilled() )
         {
             TransformCircleToPolygon( aCornerBuffer, getCenter(), GetRadius() + width / 2, aError,
@@ -443,7 +443,7 @@ void EDA_SHAPE::TransformShapeWithClearanceToPolygon( SHAPE_POLY_SET& aCornerBuf
         }
         break;
 
-    case EDA_SHAPE_TYPE::RECT:
+    case SHAPE_T::RECT:
     {
         std::vector<wxPoint> pts = GetRectCorners();
 
@@ -466,16 +466,16 @@ void EDA_SHAPE::TransformShapeWithClearanceToPolygon( SHAPE_POLY_SET& aCornerBuf
     }
         break;
 
-    case EDA_SHAPE_TYPE::ARC:
-        TransformArcToPolygon( aCornerBuffer, GetArcStart(), GetArcMid(), GetArcEnd(), width,
-                               aError, aErrorLoc );
+    case SHAPE_T::ARC:
+        TransformArcToPolygon( aCornerBuffer, GetStart(), GetArcMid(), GetEnd(), width, aError,
+                               aErrorLoc );
         break;
 
-    case EDA_SHAPE_TYPE::SEGMENT:
+    case SHAPE_T::SEGMENT:
         TransformOvalToPolygon( aCornerBuffer, m_start, m_end, width, aError, aErrorLoc );
         break;
 
-    case EDA_SHAPE_TYPE::POLYGON:
+    case SHAPE_T::POLYGON:
     {
         if( !IsPolyShapeValid() )
             break;
@@ -517,7 +517,7 @@ void EDA_SHAPE::TransformShapeWithClearanceToPolygon( SHAPE_POLY_SET& aCornerBuf
     }
         break;
 
-    case EDA_SHAPE_TYPE::CURVE: // Bezier curve
+    case SHAPE_T::CURVE: // Bezier curve
     {
         std::vector<wxPoint> ctrlPoints = { m_start, m_bezierC1, m_bezierC2, m_end };
         BEZIER_POLY converter( ctrlPoints );
@@ -533,7 +533,7 @@ void EDA_SHAPE::TransformShapeWithClearanceToPolygon( SHAPE_POLY_SET& aCornerBuf
 
     default:
         wxFAIL_MSG( "EDA_SHAPE::TransformShapeWithClearanceToPolygon not implemented for "
-                    + EDA_SHAPE_TYPE_asString() );
+                    + SHAPE_T_asString() );
         break;
     }
 }

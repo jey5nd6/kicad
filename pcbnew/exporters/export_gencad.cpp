@@ -1210,7 +1210,7 @@ static void FootprintWriteShape( FILE* aFile, FOOTPRINT* aFootprint, const wxStr
             {
                 switch( shape->GetShape() )
                 {
-                case EDA_SHAPE_TYPE::SEGMENT:
+                case SHAPE_T::SEGMENT:
                     fprintf( aFile, "LINE %g %g %g %g\n",
                              shape->m_Start0.x / SCALE_FACTOR,
                              -shape->m_Start0.y / SCALE_FACTOR,
@@ -1218,7 +1218,7 @@ static void FootprintWriteShape( FILE* aFile, FOOTPRINT* aFootprint, const wxStr
                              -shape->m_End0.y / SCALE_FACTOR );
                     break;
 
-                case EDA_SHAPE_TYPE::RECT:
+                case SHAPE_T::RECT:
                 {
                     fprintf( aFile, "LINE %g %g %g %g\n",
                              shape->m_Start0.x / SCALE_FACTOR,
@@ -1243,7 +1243,7 @@ static void FootprintWriteShape( FILE* aFile, FOOTPRINT* aFootprint, const wxStr
                 }
                     break;
 
-                case EDA_SHAPE_TYPE::CIRCLE:
+                case SHAPE_T::CIRCLE:
                 {
                     int radius = KiROUND( GetLineLength( shape->m_End0, shape->m_Start0 ) );
                     fprintf( aFile, "CIRCLE %g %g %g\n",
@@ -1253,7 +1253,7 @@ static void FootprintWriteShape( FILE* aFile, FOOTPRINT* aFootprint, const wxStr
                     break;
                 }
 
-                case EDA_SHAPE_TYPE::ARC:
+                case SHAPE_T::ARC:
                 {
                     int arcendx, arcendy;
                     arcendx = shape->m_End0.x - shape->m_Start0.x;
@@ -1272,7 +1272,7 @@ static void FootprintWriteShape( FILE* aFile, FOOTPRINT* aFootprint, const wxStr
                     break;
                 }
 
-                case EDA_SHAPE_TYPE::POLYGON:
+                case SHAPE_T::POLYGON:
                     // Not exported (TODO)
                     break;
 

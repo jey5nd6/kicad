@@ -199,14 +199,14 @@ public:
 
     virtual void SetViewport( const wxPoint& aOffset, double aIusPerDecimil,
                               double aScale, bool aMirror ) override;
-    virtual void Rect( const wxPoint& p1, const wxPoint& p2, FILL_TYPE fill,
+    virtual void Rect( const wxPoint& p1, const wxPoint& p2, FILL_T fill,
                        int width = USE_DEFAULT_LINE_WIDTH ) override;
-    virtual void Circle( const wxPoint& pos, int diametre, FILL_TYPE fill,
+    virtual void Circle( const wxPoint& pos, int diametre, FILL_T fill,
                          int width = USE_DEFAULT_LINE_WIDTH ) override;
     virtual void Arc( const wxPoint& centre, double StAngle, double EndAngle,
-                      int rayon, FILL_TYPE fill, int width = USE_DEFAULT_LINE_WIDTH ) override;
+                      int rayon, FILL_T fill, int width = USE_DEFAULT_LINE_WIDTH ) override;
 
-    virtual void PlotPoly( const std::vector< wxPoint >& aCornerList, FILL_TYPE aFill,
+    virtual void PlotPoly( const std::vector< wxPoint >& aCornerList, FILL_T aFill,
                            int aWidth = USE_DEFAULT_LINE_WIDTH, void* aData = nullptr ) override;
 
     /**
@@ -308,13 +308,13 @@ public:
     /**
      * Rectangles in PDF. Supported by the native operator.
      */
-    virtual void Rect( const wxPoint& p1, const wxPoint& p2, FILL_TYPE fill,
+    virtual void Rect( const wxPoint& p1, const wxPoint& p2, FILL_T fill,
                        int width = USE_DEFAULT_LINE_WIDTH ) override;
 
     /**
      * Circle drawing for PDF. They're approximated by curves, but fill is supported
      */
-    virtual void Circle( const wxPoint& pos, int diametre, FILL_TYPE fill,
+    virtual void Circle( const wxPoint& pos, int diametre, FILL_T fill,
                          int width = USE_DEFAULT_LINE_WIDTH ) override;
 
     /**
@@ -322,12 +322,12 @@ public:
      * So no filled arcs (not a great loss... )
      */
     virtual void Arc( const wxPoint& centre, double StAngle, double EndAngle,
-                      int rayon, FILL_TYPE fill, int width = USE_DEFAULT_LINE_WIDTH ) override;
+                      int rayon, FILL_T fill, int width = USE_DEFAULT_LINE_WIDTH ) override;
 
     /**
      * Polygon plotting for PDF. Everything is supported
      */
-    virtual void PlotPoly( const std::vector< wxPoint >& aCornerList, FILL_TYPE aFill,
+    virtual void PlotPoly( const std::vector< wxPoint >& aCornerList, FILL_T aFill,
                            int aWidth = USE_DEFAULT_LINE_WIDTH, void* aData = nullptr ) override;
 
     virtual void PenTo( const wxPoint& pos, char plume ) override;
@@ -444,12 +444,12 @@ public:
 
     virtual void SetViewport( const wxPoint& aOffset, double aIusPerDecimil,
                   double aScale, bool aMirror ) override;
-    virtual void Rect( const wxPoint& p1, const wxPoint& p2, FILL_TYPE fill,
+    virtual void Rect( const wxPoint& p1, const wxPoint& p2, FILL_T fill,
                        int width = USE_DEFAULT_LINE_WIDTH ) override;
-    virtual void Circle( const wxPoint& pos, int diametre, FILL_TYPE fill,
+    virtual void Circle( const wxPoint& pos, int diametre, FILL_T fill,
                          int width = USE_DEFAULT_LINE_WIDTH ) override;
     virtual void Arc( const wxPoint& centre, double StAngle, double EndAngle,
-                      int rayon, FILL_TYPE fill, int width = USE_DEFAULT_LINE_WIDTH ) override;
+                      int rayon, FILL_T fill, int width = USE_DEFAULT_LINE_WIDTH ) override;
 
     virtual void BezierCurve( const wxPoint& aStart, const wxPoint& aControl1,
                               const wxPoint& aControl2, const wxPoint& aEnd,
@@ -457,7 +457,7 @@ public:
                               int aLineThickness = USE_DEFAULT_LINE_WIDTH ) override;
 
     virtual void PlotPoly( const std::vector< wxPoint >& aCornerList,
-                           FILL_TYPE aFill, int aWidth = USE_DEFAULT_LINE_WIDTH,
+                           FILL_T aFill, int aWidth = USE_DEFAULT_LINE_WIDTH,
                            void * aData = nullptr ) override;
 
     /**
@@ -526,9 +526,9 @@ protected:
     /**
      * Prepare parameters for setSVGPlotStyle()
      */
-    void setFillMode( FILL_TYPE fill );
+    void setFillMode( FILL_T fill );
 
-    FILL_TYPE      m_fillMode;          // true if the current contour
+    FILL_T  m_fillMode;          // true if the current contour
                                         // rect, arc, circle, polygon must be filled
     long           m_pen_rgb_color;     // current rgb color value: each color has
                                         // a value 0 ... 255, and the 3 colors are

@@ -42,9 +42,9 @@ class LIB_FIELD;
 class TEST_LIB_SYMBOL_FIXTURE;
 
 
-typedef std::shared_ptr<LIB_SYMBOL>       LIB_SYMBOL_SPTR;      ///< shared pointer to LIB_SYMBOL
-typedef std::weak_ptr<LIB_SYMBOL>         LIB_SYMBOL_REF;       ///< weak pointer to LIB_SYMBOL
-typedef MULTIVECTOR<LIB_ITEM, LIB_ARC_T, LIB_FIELD_T> LIB_ITEMS_CONTAINER;
+typedef std::shared_ptr<LIB_SYMBOL>        LIB_SYMBOL_SPTR;      ///< shared pointer to LIB_SYMBOL
+typedef std::weak_ptr<LIB_SYMBOL>          LIB_SYMBOL_REF;       ///< weak pointer to LIB_SYMBOL
+typedef MULTIVECTOR<LIB_ITEM, LIB_SHAPE_T, LIB_FIELD_T> LIB_ITEMS_CONTAINER;
 typedef LIB_ITEMS_CONTAINER::ITEM_PTR_VECTOR LIB_ITEMS;
 
 
@@ -296,12 +296,12 @@ public:
      * Print symbol.
      *
      * @param aOffset - Position of symbol.
-     * @param aMulti - unit if multiple units per symbol.
+     * @param aUnit - unit if multiple units per symbol.
      * @param aConvert - Symbol conversion (DeMorgan) if available.
      * @param aOpts - Drawing options
      */
     void Print( const RENDER_SETTINGS* aSettings, const wxPoint& aOffset,
-                int aMulti, int aConvert, const LIB_SYMBOL_OPTIONS& aOpts );
+                int aUnit, int aConvert, const LIB_SYMBOL_OPTIONS& aOpts );
 
     /**
      * Plot lib symbol to plotter.

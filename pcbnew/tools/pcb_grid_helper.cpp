@@ -522,7 +522,7 @@ void PCB_GRID_HELPER::computeAnchors( BOARD_ITEM* aItem, const VECTOR2I& aRefPos
 
             switch( shape->GetShape() )
             {
-                case EDA_SHAPE_TYPE::CIRCLE:
+                case SHAPE_T::CIRCLE:
                 {
                     int r = ( start - end ).EuclideanNorm();
 
@@ -534,14 +534,14 @@ void PCB_GRID_HELPER::computeAnchors( BOARD_ITEM* aItem, const VECTOR2I& aRefPos
                     break;
                 }
 
-                case EDA_SHAPE_TYPE::ARC:
-                    addAnchor( shape->GetArcStart(), CORNER | SNAPPABLE, shape );
-                    addAnchor( shape->GetArcEnd(), CORNER | SNAPPABLE, shape );
+                case SHAPE_T::ARC:
+                    addAnchor( shape->GetStart(), CORNER | SNAPPABLE, shape );
+                    addAnchor( shape->GetEnd(), CORNER | SNAPPABLE, shape );
                     addAnchor( shape->GetArcMid(), CORNER | SNAPPABLE, shape );
                     addAnchor( shape->GetCenter(), ORIGIN | SNAPPABLE, shape );
                     break;
 
-                case EDA_SHAPE_TYPE::RECT:
+                case SHAPE_T::RECT:
                 {
                     VECTOR2I point2( end.x, start.y );
                     VECTOR2I point3( start.x, end.y );
@@ -561,13 +561,13 @@ void PCB_GRID_HELPER::computeAnchors( BOARD_ITEM* aItem, const VECTOR2I& aRefPos
                     break;
                 }
 
-                case EDA_SHAPE_TYPE::SEGMENT:
+                case SHAPE_T::SEGMENT:
                     addAnchor( start, CORNER | SNAPPABLE, shape );
                     addAnchor( end, CORNER | SNAPPABLE, shape );
                     addAnchor( shape->GetCenter(), CORNER | SNAPPABLE, shape );
                     break;
 
-                case EDA_SHAPE_TYPE::POLYGON:
+                case SHAPE_T::POLYGON:
                 {
                     SHAPE_LINE_CHAIN lc;
                     lc.SetClosed( true );
@@ -582,7 +582,7 @@ void PCB_GRID_HELPER::computeAnchors( BOARD_ITEM* aItem, const VECTOR2I& aRefPos
                     break;
                 }
 
-                case EDA_SHAPE_TYPE::CURVE:
+                case SHAPE_T::CURVE:
                     addAnchor( start, CORNER | SNAPPABLE, shape );
                     addAnchor( end, CORNER | SNAPPABLE, shape );
                     KI_FALLTHROUGH;

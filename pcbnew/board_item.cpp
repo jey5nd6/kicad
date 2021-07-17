@@ -124,21 +124,6 @@ void BOARD_ITEM::TransformShapeWithClearanceToPolygon( SHAPE_POLY_SET& aCornerBu
 };
 
 
-bool BOARD_ITEM::ptr_cmp::operator() ( const BOARD_ITEM* a, const BOARD_ITEM* b ) const
-{
-    if( a->Type() != b->Type() )
-        return a->Type() < b->Type();
-
-    if( a->GetLayer() != b->GetLayer() )
-        return a->GetLayer() < b->GetLayer();
-
-    if( a->m_Uuid != b->m_Uuid )    // shopuld be always the case foer valid boards
-        return a->m_Uuid < b->m_Uuid;
-
-    return a < b;
-}
-
-
 std::shared_ptr<SHAPE> BOARD_ITEM::GetEffectiveShape( PCB_LAYER_ID aLayer ) const
 {
     std::shared_ptr<SHAPE> shape;

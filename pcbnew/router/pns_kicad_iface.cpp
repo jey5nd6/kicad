@@ -1165,7 +1165,7 @@ bool PNS_KICAD_IFACE_BASE::syncGraphicalItem( PNS::NODE* aWorld, PCB_SHAPE* aIte
             || IsCopperLayer( aItem->GetLayer() ) )
     {
         // TODO: where do we handle filled polygons on copper layers?
-        if( aItem->GetShape() == EDA_SHAPE_TYPE::POLYGON && aItem->IsFilled() )
+        if( aItem->GetShape() == SHAPE_T::POLYGON && aItem->IsFilled() )
             return false;
 
         for( SHAPE* shape : aItem->MakeEffectiveShapes() )

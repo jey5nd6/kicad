@@ -1078,6 +1078,18 @@ public:
      */
     GroupLegalOpsField GroupLegalOps( const PCB_SELECTION& selection ) const;
 
+    // --------- Item order comparators ---------
+
+    struct cmp_items
+    {
+        bool operator() ( const BOARD_ITEM* aFirst, const BOARD_ITEM* aSecond ) const;
+    };
+
+    struct cmp_drawings
+    {
+        bool operator()( const BOARD_ITEM* aFirst, const BOARD_ITEM* aSecond ) const;
+    };
+
     // ------------ Run-time caches -------------
     std::mutex                                            m_CachesMutex;
     std::map< std::pair<BOARD_ITEM*, BOARD_ITEM*>, bool > m_InsideCourtyardCache;

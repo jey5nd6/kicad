@@ -87,13 +87,10 @@ static void idf_export_outline( BOARD* aPcb, IDF3_BOARD& aIDFBoard )
 
         switch( graphic->GetShape() )
         {
-        case EDA_SHAPE_TYPE::SEGMENT:
+        case SHAPE_T::SEGMENT:
             {
-                if( ( graphic->GetStart().x == graphic->GetEnd().x )
-                    && ( graphic->GetStart().y == graphic->GetEnd().y ) )
-                {
+                if( graphic->GetStart() == graphic->GetEnd() )
                     break;
-                }
 
                 sp.x    = graphic->GetStart().x * scale + offX;
                 sp.y    = -graphic->GetStart().y * scale + offY;
@@ -106,13 +103,10 @@ static void idf_export_outline( BOARD* aPcb, IDF3_BOARD& aIDFBoard )
             }
             break;
 
-        case EDA_SHAPE_TYPE::RECT:
+        case SHAPE_T::RECT:
             {
-                if( ( graphic->GetStart().x == graphic->GetEnd().x )
-                    && ( graphic->GetStart().y == graphic->GetEnd().y ) )
-                {
+                if( graphic->GetStart() == graphic->GetEnd() )
                     break;
-                }
 
                 double top = graphic->GetStart().y * scale + offY;
                 double left = graphic->GetStart().x * scale + offX;
@@ -132,26 +126,23 @@ static void idf_export_outline( BOARD* aPcb, IDF3_BOARD& aIDFBoard )
             }
             break;
 
-        case EDA_SHAPE_TYPE::ARC:
+        case SHAPE_T::ARC:
             {
-                if( ( graphic->GetCenter().x == graphic->GetArcStart().x )
-                    && ( graphic->GetCenter().y == graphic->GetArcStart().y ) )
-                {
+                if( graphic->GetStart() == graphic->GetEnd() )
                     break;
-                }
 
                 sp.x = graphic->GetCenter().x * scale + offX;
                 sp.y = -graphic->GetCenter().y * scale + offY;
-                ep.x = graphic->GetArcStart().x * scale + offX;
-                ep.y = -graphic->GetArcStart().y * scale + offY;
-                IDF_SEGMENT* seg = new IDF_SEGMENT( sp, ep, -graphic->GetAngle() / 10.0, true );
+                ep.x = graphic->GetStart().x * scale + offX;
+                ep.y = -graphic->GetStart().y * scale + offY;
+                IDF_SEGMENT* seg = new IDF_SEGMENT( sp, ep, -graphic->GetArcAngle() / 10.0, true );
 
                 if( seg )
                     lines.push_back( seg );
             }
             break;
 
-        case EDA_SHAPE_TYPE::CIRCLE:
+        case SHAPE_T::CIRCLE:
             {
                 if( graphic->GetRadius() == 0 )
                     break;

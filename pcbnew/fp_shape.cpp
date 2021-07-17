@@ -37,7 +37,7 @@
 #include <view/view.h>
 
 
-FP_SHAPE::FP_SHAPE( FOOTPRINT* parent, EDA_SHAPE_TYPE aShape ) :
+FP_SHAPE::FP_SHAPE( FOOTPRINT* parent, SHAPE_T aShape ) :
         PCB_SHAPE( parent, PCB_FP_SHAPE_T, aShape )
 {
     m_layer = F_SilkS;
@@ -137,37 +137,17 @@ EDA_ITEM* FP_SHAPE::Clone() const
 }
 
 
-void FP_SHAPE::SetAngle( double aAngle, bool aUpdateEnd )
-{
-    // Mark as depreciated.
-    // m_Angle does not define the arc anymore
-    // Update the parent class (updates the global m_ThirdPoint)
-    PCB_SHAPE::SetAngle( aAngle, aUpdateEnd );
-
-    // Also update the local m_ThirdPoint0 if requested
-    if( aUpdateEnd )
-    {
-        m_ThirdPoint0 = m_End0;
-        RotatePoint( &m_ThirdPoint0, m_Start0, -m_angle );
-    }
-}
-
-
 void FP_SHAPE::Flip( const wxPoint& aCentre, bool aFlipLeftRight )
 {
     wxPoint pt( 0, 0 );
 
     switch( GetShape() )
     {
-    case EDA_SHAPE_TYPE::ARC:
-        // Update arc angle but do not yet update m_ThirdPoint0 and m_thirdPoint,
-        // arc center and start point must be updated before calculation arc end.
-        SetAngle( -GetAngle(), false );
-        KI_FALLTHROUGH;
-
-    default:
-    case EDA_SHAPE_TYPE::SEGMENT:
-    case EDA_SHAPE_TYPE::CURVE:
+    case SHAPE_T::ARC:
+    case SHAPE_T::SEGMENT:
+    case SHAPE_T::RECT:
+    case SHAPE_T::CIRCLE:
+    case SHAPE_T::CURVE:
         // If Start0 and Start are equal (ie: Footprint Editor), then flip both sets around the
         // centre point.
         if( m_start == m_Start0 )
@@ -200,13 +180,18 @@ void FP_SHAPE::Flip( const wxPoint& aCentre, bool aFlipLeftRight )
             MIRROR( m_Bezier0_C2.y, pt.y );
         }
 
-        RebuildBezierToSegmentsPointsList( m_width );
+        if( GetShape() == SHAPE_T::CURVE )
+            RebuildBezierToSegmentsPointsList( m_width );
+
         break;
 
-    case EDA_SHAPE_TYPE::POLYGON:
+    case SHAPE_T::POLYGON:
         // polygon corners coordinates are relative to the footprint position, orientation 0
         m_poly.Mirror( aFlipLeftRight, !aFlipLeftRight );
         break;
+
+    default:
+        wxFAIL_MSG( "FP_SHAPE::Flip not implemented for " + SHAPE_T_asString() );
     }
 
     SetLayer( FlipLayer( GetLayer(), GetBoard()->GetCopperLayerCount() ) );
@@ -226,15 +211,11 @@ void FP_SHAPE::Mirror( const wxPoint& aCentre, bool aMirrorAroundXAxis )
 
     switch( GetShape() )
     {
-    case EDA_SHAPE_TYPE::ARC:
-        // Update arc angle but do not yet update m_ThirdPoint0 and m_thirdPoint,
-        // arc center and start point must be updated before calculation arc end.
-        SetAngle( -GetAngle(), false );
-        KI_FALLTHROUGH;
-
-    default:
-    case EDA_SHAPE_TYPE::CURVE:
-    case EDA_SHAPE_TYPE::SEGMENT:
+    case SHAPE_T::ARC:
+    case SHAPE_T::SEGMENT:
+    case SHAPE_T::RECT:
+    case SHAPE_T::CIRCLE:
+    case SHAPE_T::CURVE:
         if( aMirrorAroundXAxis )
         {
             MIRROR( m_Start0.y, aCentre.y );
@@ -252,21 +233,19 @@ void FP_SHAPE::Mirror( const wxPoint& aCentre, bool aMirrorAroundXAxis )
             MIRROR( m_Bezier0_C2.x, aCentre.x );
         }
 
-        for( unsigned ii = 0; ii < m_bezierPoints.size(); ii++ )
-        {
-            if( aMirrorAroundXAxis )
-                MIRROR( m_bezierPoints[ii].y, aCentre.y );
-            else
-                MIRROR( m_bezierPoints[ii].x, aCentre.x );
-        }
+        if( GetShape() == SHAPE_T::CURVE )
+            RebuildBezierToSegmentsPointsList( m_width );
 
         break;
 
-    case EDA_SHAPE_TYPE::POLYGON:
+    case SHAPE_T::POLYGON:
         // polygon corners coordinates are always relative to the
         // footprint position, orientation 0
         m_poly.Mirror( !aMirrorAroundXAxis, aMirrorAroundXAxis );
         break;
+
+    default:
+        wxFAIL_MSG( "FP_SHAPE::Mirror not implemented for " + SHAPE_T_asString() );
     }
 
     SetDrawCoord();
@@ -288,26 +267,40 @@ void FP_SHAPE::Move( const wxPoint& aMoveVector )
 {
     // Move an edge of the footprint.
     // This is a footprint shape modification.
-    m_Start0      += aMoveVector;
-    m_End0        += aMoveVector;
-    m_ThirdPoint0 += aMoveVector;
-    m_Bezier0_C1  += aMoveVector;
-    m_Bezier0_C2  += aMoveVector;
 
     switch( GetShape() )
     {
-    default:
+    case SHAPE_T::ARC:
+    case SHAPE_T::SEGMENT:
+    case SHAPE_T::RECT:
+    case SHAPE_T::CIRCLE:
+    case SHAPE_T::CURVE:
+        m_Start0      += aMoveVector;
+        m_End0        += aMoveVector;
+        m_ThirdPoint0 += aMoveVector;
+        m_Bezier0_C1  += aMoveVector;
+        m_Bezier0_C2  += aMoveVector;
         break;
 
-    case EDA_SHAPE_TYPE::POLYGON:
+    case SHAPE_T::POLYGON:
         // polygon corners coordinates are always relative to the
         // footprint position, orientation 0
         m_poly.Move( VECTOR2I( aMoveVector ) );
 
         break;
+
+    default:
+        wxFAIL_MSG( "FP_SHAPE::Move not implemented for " + SHAPE_T_asString() );
     }
 
     SetDrawCoord();
+}
+
+
+wxPoint FP_SHAPE::GetCenter0() const
+{
+    wxPoint offset0 = GetStart0() - GetStart();
+    return getCenter() + offset0;
 }
 
 

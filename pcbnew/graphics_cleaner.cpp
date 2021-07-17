@@ -65,31 +65,28 @@ void GRAPHICS_CLEANER::CleanupBoard( bool aDryRun,
 }
 
 
-bool GRAPHICS_CLEANER::isNullSegment( PCB_SHAPE* aSegment )
+bool GRAPHICS_CLEANER::isNullShape( PCB_SHAPE* aShape )
 {
-    switch( aSegment->GetShape() )
+    switch( aShape->GetShape() )
     {
-    case EDA_SHAPE_TYPE::SEGMENT:
-    case EDA_SHAPE_TYPE::RECT:
-        return aSegment->GetStart() == aSegment->GetEnd();
+    case SHAPE_T::ARC:
+    case SHAPE_T::SEGMENT:
+    case SHAPE_T::RECT:
+        return aShape->GetStart() == aShape->GetEnd();
 
-    case EDA_SHAPE_TYPE::CIRCLE:
-        return aSegment->GetRadius() == 0;
+    case SHAPE_T::CIRCLE:
+        return aShape->GetRadius() == 0;
 
-    case EDA_SHAPE_TYPE::ARC:
-        return aSegment->GetCenter().x == aSegment->GetArcStart().x
-                   && aSegment->GetCenter().y == aSegment->GetArcStart().y;
+    case SHAPE_T::POLYGON:
+        return aShape->GetPointCount() == 0;
 
-    case EDA_SHAPE_TYPE::POLYGON:
-        return aSegment->GetPointCount() == 0;
-
-    case EDA_SHAPE_TYPE::CURVE:
-        aSegment->RebuildBezierToSegmentsPointsList( aSegment->GetWidth() );
-        return aSegment->GetBezierPoints().empty();
+    case SHAPE_T::CURVE:
+        aShape->RebuildBezierToSegmentsPointsList( aShape->GetWidth() );
+        return aShape->GetBezierPoints().empty();
 
     default:
-        wxFAIL_MSG( "GRAPHICS_CLEANER::isNullSegment unimplemented for "
-                    + aSegment->EDA_SHAPE_TYPE_asString() );
+        wxFAIL_MSG( "GRAPHICS_CLEANER::isNullShape not implemented for "
+                    + aShape->SHAPE_T_asString() );
         return false;
     }
 }
@@ -97,40 +94,7 @@ bool GRAPHICS_CLEANER::isNullSegment( PCB_SHAPE* aSegment )
 
 bool GRAPHICS_CLEANER::areEquivalent( PCB_SHAPE* aShape1, PCB_SHAPE* aShape2 )
 {
-    if( aShape1->GetShape() != aShape2->GetShape()
-            || aShape1->GetLayer() != aShape2->GetLayer()
-            || aShape1->GetWidth() != aShape2->GetWidth() )
-    {
-        return false;
-    }
-
-    switch( aShape1->GetShape() )
-    {
-    case EDA_SHAPE_TYPE::SEGMENT:
-    case EDA_SHAPE_TYPE::RECT:
-    case EDA_SHAPE_TYPE::CIRCLE:
-        return aShape1->GetStart() == aShape2->GetStart()
-                && aShape1->GetEnd() == aShape2->GetEnd();
-
-    case EDA_SHAPE_TYPE::ARC:
-        return aShape1->GetCenter() == aShape2->GetCenter()
-                && aShape1->GetArcStart() == aShape2->GetArcStart()
-                && aShape1->GetAngle() == aShape2->GetAngle();
-
-    case EDA_SHAPE_TYPE::POLYGON:
-        // TODO
-        return false;
-
-    case EDA_SHAPE_TYPE::CURVE:
-        return aShape1->GetBezControl1() == aShape2->GetBezControl1()
-                && aShape1->GetBezControl2() == aShape2->GetBezControl2()
-                && aShape1->GetBezierPoints() == aShape2->GetBezierPoints();
-
-    default:
-        wxFAIL_MSG( "GRAPHICS_CLEANER::areEquivalent unimplemented for "
-                    + aShape1->EDA_SHAPE_TYPE_asString() );
-        return false;
-    }
+    return aShape1->Compare( aShape2 ) == 0;
 }
 
 
@@ -141,11 +105,10 @@ void GRAPHICS_CLEANER::cleanupSegments()
     {
         PCB_SHAPE* segment = dynamic_cast<PCB_SHAPE*>( *it );
 
-        if( !segment || segment->GetShape() != EDA_SHAPE_TYPE::SEGMENT
-            || segment->HasFlag( IS_DELETED ) )
+        if( !segment || segment->GetShape() != SHAPE_T::SEGMENT || segment->HasFlag( IS_DELETED ) )
             continue;
 
-        if( isNullSegment( segment ) )
+        if( isNullShape( segment ) )
         {
             std::shared_ptr<CLEANUP_ITEM> item = std::make_shared<CLEANUP_ITEM>( CLEANUP_NULL_GRAPHIC );
             item->SetItems( segment );
@@ -206,7 +169,7 @@ void GRAPHICS_CLEANER::mergeRects()
     {
         PCB_SHAPE* shape = dynamic_cast<PCB_SHAPE*>( item );
 
-        if( !shape || shape->GetShape() != EDA_SHAPE_TYPE::SEGMENT )
+        if( !shape || shape->GetShape() != SHAPE_T::SEGMENT )
             continue;
 
         if( shape->GetStart().x == shape->GetEnd().x || shape->GetStart().y == shape->GetEnd().y )
@@ -303,11 +266,10 @@ void GRAPHICS_CLEANER::mergeRects()
                     PCB_SHAPE* rect;
 
                     if( m_parentFootprint )
-                        rect = new FP_SHAPE( m_parentFootprint );
+                        rect = new FP_SHAPE( m_parentFootprint, SHAPE_T::RECT );
                     else
-                        rect = new PCB_SHAPE();
+                        rect = new PCB_SHAPE( nullptr, SHAPE_T::RECT );
 
-                    rect->SetShape( EDA_SHAPE_TYPE::RECT );
                     rect->SetFilled( false );
                     rect->SetStart( top->start );
                     rect->SetEnd( bottom->end );

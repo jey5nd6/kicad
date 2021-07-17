@@ -1672,15 +1672,15 @@ void LEGACY_PLUGIN::loadPAD( FOOTPRINT* aFootprint )
 
 void LEGACY_PLUGIN::loadFP_SHAPE( FOOTPRINT* aFootprint )
 {
-    EDA_SHAPE_TYPE shape;
+    SHAPE_T shape;
     char*            line = m_reader->Line();     // obtain current (old) line
 
     switch( line[1] )
     {
-    case 'S': shape = EDA_SHAPE_TYPE::SEGMENT; break;
-    case 'C': shape = EDA_SHAPE_TYPE::CIRCLE; break;
-    case 'A': shape = EDA_SHAPE_TYPE::ARC; break;
-    case 'P': shape = EDA_SHAPE_TYPE::POLYGON; break;
+    case 'S': shape = SHAPE_T::SEGMENT; break;
+    case 'C': shape = SHAPE_T::CIRCLE;  break;
+    case 'A': shape = SHAPE_T::ARC;     break;
+    case 'P': shape = SHAPE_T::POLYGON; break;
     default:
         m_error.Printf( _( "Unknown FP_SHAPE type:'%c=0x%02x' on line %d of footprint '%s'." ),
                         (unsigned char) line[1],
@@ -1700,83 +1700,87 @@ void LEGACY_PLUGIN::loadFP_SHAPE( FOOTPRINT* aFootprint )
 
     switch( shape )
     {
-    case EDA_SHAPE_TYPE::ARC:
-        {
-            BIU     start0_x = biuParse( line + SZ( "DA" ), &data );
-            BIU     start0_y = biuParse( data, &data );
-            BIU     end0_x   = biuParse( data, &data );
-            BIU     end0_y   = biuParse( data, &data );
-            double  angle    = degParse( data, &data );
+    case SHAPE_T::ARC:
+    {
+        BIU     center_x = biuParse( line + SZ( "DA" ), &data );
+        BIU     center_y = biuParse( data, &data );
+        BIU     start_x   = biuParse( data, &data );
+        BIU     start_y   = biuParse( data, &data );
+        double  angle    = degParse( data, &data );
 
-            width   = biuParse( data, &data );
-            layer   = layerParse( data );
+        width   = biuParse( data, &data );
+        layer   = layerParse( data );
 
-            dwg->m_Start0 = wxPoint( start0_x, start0_y );
-            dwg->m_End0   = wxPoint( end0_x, end0_y );
+        wxPoint center( center_x, center_y );
+        wxPoint startV( start_x - center_x, start_y - center_y );
 
-            // Setting angle will set m_ThirdPoint0, so must be done after setting
-            // m_Start0 and m_End0
-            dwg->SetAngle( angle );
-        }
+        dwg->m_Start0 = startV;
+        dwg->m_ThirdPoint0 = startV;
+        dwg->m_End0 = startV;
+
+        RotatePoint( &dwg->m_ThirdPoint0, angle / 2 );
+        RotatePoint( &dwg->m_End0, angle );
+        dwg->Move( center );
+    }
         break;
 
-    case EDA_SHAPE_TYPE::SEGMENT:
-        case EDA_SHAPE_TYPE::CIRCLE:
-        {
-            // e.g. "DS -7874 -10630 7874 -10630 50 20\r\n"
-            BIU     start0_x = biuParse( line + SZ( "DS" ), &data );
-            BIU     start0_y = biuParse( data, &data );
-            BIU     end0_x   = biuParse( data, &data );
-            BIU     end0_y   = biuParse( data, &data );
+    case SHAPE_T::SEGMENT:
+    case SHAPE_T::CIRCLE:
+    {
+        // e.g. "DS -7874 -10630 7874 -10630 50 20\r\n"
+        BIU     start0_x = biuParse( line + SZ( "DS" ), &data );
+        BIU     start0_y = biuParse( data, &data );
+        BIU     end0_x   = biuParse( data, &data );
+        BIU     end0_y   = biuParse( data, &data );
 
-            width   = biuParse( data, &data );
-            layer   = layerParse( data );
+        width   = biuParse( data, &data );
+        layer   = layerParse( data );
 
-            dwg->m_Start0 = wxPoint( start0_x, start0_y );
-            dwg->m_End0   = wxPoint( end0_x, end0_y );
-        }
+        dwg->m_Start0 = wxPoint( start0_x, start0_y );
+        dwg->m_End0   = wxPoint( end0_x, end0_y );
+    }
         break;
 
-    case EDA_SHAPE_TYPE::POLYGON:
+    case SHAPE_T::POLYGON:
+    {
+        // e.g. "DP %d %d %d %d %d %d %d\n"
+        BIU start0_x = biuParse( line + SZ( "DP" ), &data );
+        BIU start0_y = biuParse( data, &data );
+        BIU end0_x   = biuParse( data, &data );
+        BIU end0_y   = biuParse( data, &data );
+        int ptCount  = intParse( data, &data );
+
+        width   = biuParse( data, &data );
+        layer   = layerParse( data );
+
+        dwg->m_Start0 = wxPoint( start0_x, start0_y );
+        dwg->m_End0   = wxPoint( end0_x, end0_y );
+
+        std::vector<wxPoint> pts;
+        pts.reserve( ptCount );
+
+        for( int ii = 0;  ii<ptCount;  ++ii )
         {
-            // e.g. "DP %d %d %d %d %d %d %d\n"
-            BIU start0_x = biuParse( line + SZ( "DP" ), &data );
-            BIU start0_y = biuParse( data, &data );
-            BIU end0_x   = biuParse( data, &data );
-            BIU end0_y   = biuParse( data, &data );
-            int ptCount  = intParse( data, &data );
-
-            width   = biuParse( data, &data );
-            layer   = layerParse( data );
-
-            dwg->m_Start0 = wxPoint( start0_x, start0_y );
-            dwg->m_End0   = wxPoint( end0_x, end0_y );
-
-            std::vector<wxPoint> pts;
-            pts.reserve( ptCount );
-
-            for( int ii = 0;  ii<ptCount;  ++ii )
+            if( ( line = READLINE( m_reader ) ) == NULL )
             {
-                if( ( line = READLINE( m_reader ) ) == NULL )
-                {
-                    THROW_IO_ERROR( "S_POLGON point count mismatch." );
-                }
-
-                // e.g. "Dl 23 44\n"
-
-                if( !TESTLINE( "Dl" ) )
-                {
-                    THROW_IO_ERROR( "Missing Dl point def" );
-                }
-
-                BIU x = biuParse( line + SZ( "Dl" ), &data );
-                BIU y = biuParse( data );
-
-                pts.emplace_back( x, y );
+                THROW_IO_ERROR( "S_POLGON point count mismatch." );
             }
 
-            dwg->SetPolyPoints( pts );
+            // e.g. "Dl 23 44\n"
+
+            if( !TESTLINE( "Dl" ) )
+            {
+                THROW_IO_ERROR( "Missing Dl point def" );
+            }
+
+            BIU x = biuParse( line + SZ( "Dl" ), &data );
+            BIU y = biuParse( data );
+
+            pts.emplace_back( x, y );
         }
+
+        dwg->SetPolyPoints( pts );
+    }
         break;
 
     default:
@@ -1977,7 +1981,7 @@ void LEGACY_PLUGIN::loadPCB_LINE()
             if( width < 0 )
                 width = 0;
 
-            dseg->SetShape( static_cast<EDA_SHAPE_TYPE>( shape ) );
+            dseg->SetShape( static_cast<SHAPE_T>( shape ) );
             dseg->SetFilled( false );
             dseg->SetWidth( width );
             dseg->SetStart( wxPoint( start_x, start_y ) );
@@ -2006,17 +2010,19 @@ void LEGACY_PLUGIN::loadPCB_LINE()
 
                     dseg->SetLayer( leg_layer2new( m_cu_count,  layer ) );
                     break;
+
                 case 1:
                     (void)intParse( data );
                     break;
+
                 case 2:
-                    double angle;
-                    angle = degParse( data );
-                    dseg->SetAngle( angle );    // m_Angle
+                    (void)degParse( data );
                     break;
+
                 case 3:
                     const_cast<KIID&>( dseg->m_Uuid ) = KIID( data );
                     break;
+
                 case 4:
                     EDA_ITEM_FLAGS state;
                     state = static_cast<EDA_ITEM_FLAGS>( hexParse( data ) );

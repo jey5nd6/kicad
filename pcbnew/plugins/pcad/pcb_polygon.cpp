@@ -166,7 +166,7 @@ void PCB_POLYGON::AddToFootprint( FOOTPRINT* aFootprint )
 {
     if( IsNonCopperLayer( m_KiCadLayer ) )
     {
-        FP_SHAPE* dwg = new FP_SHAPE( aFootprint, EDA_SHAPE_TYPE::POLYGON );
+        FP_SHAPE* dwg = new FP_SHAPE( aFootprint, SHAPE_T::POLYGON );
         aFootprint->Add( dwg );
 
         dwg->SetWidth( 0 );
@@ -232,7 +232,7 @@ void PCB_POLYGON::AddToBoard()
             zone->SetDoNotAllowFootprints( false );
         }
 
-        //if( m_filled )
+        //if( m_fill )
         //    zone->BuildFilledPolysListData( m_board );
     }
 }

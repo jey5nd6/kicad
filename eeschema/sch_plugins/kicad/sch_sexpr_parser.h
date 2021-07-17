@@ -42,7 +42,7 @@
 
 class LIB_ARC;
 class LIB_BEZIER;
-class LIB_CIRCLE;
+class LIB_SHAPE;
 class LIB_ITEM;
 class LIB_PIN;
 class LIB_POLYLINE;
@@ -68,7 +68,7 @@ class TITLE_BLOCK;
 class FILL_PARAMS
 {
 public:
-    FILL_TYPE m_FillType;
+    FILL_T m_FillType;
     COLOR4D m_Color;
 };
 
@@ -165,12 +165,12 @@ class SCH_SEXPR_PARSER : public SCHEMATIC_LEXER
 
     LIB_FIELD* parseProperty( std::unique_ptr<LIB_SYMBOL>& aSymbol );
 
-    LIB_ARC* parseArc();
-    LIB_BEZIER* parseBezier();
-    LIB_CIRCLE* parseCircle();
+    LIB_SHAPE* parseArc();
+    LIB_SHAPE* parseBezier();
+    LIB_SHAPE* parseCircle();
     LIB_PIN* parsePin();
-    LIB_POLYLINE* parsePolyLine();
-    LIB_RECTANGLE* parseRectangle();
+    LIB_SHAPE* parsePolyLine();
+    LIB_SHAPE* parseRectangle();
     LIB_TEXT* parseText();
 
     void parsePAGE_INFO( PAGE_INFO& aPageInfo );

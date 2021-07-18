@@ -295,7 +295,7 @@ static struct EDA_ITEM_DESC
 
             .Map( LIB_SYMBOL_T,         _HKI( "Symbol" ) )
             .Map( LIB_ALIAS_T,          _HKI( "Alias" ) )
-            .Map( LIB_ARC_T,            _HKI( "Arc" ) )
+            .Map( LIB_SHAPE_T,          _HKI( "Graphic Shape" ) )
             .Map( LIB_CIRCLE_T,         _HKI( "Circle" ) )
             .Map( LIB_TEXT_T,           _HKI( "Symbol Text" ) )
             .Map( LIB_RECTANGLE_T,      _HKI( "Rectangle" ) )

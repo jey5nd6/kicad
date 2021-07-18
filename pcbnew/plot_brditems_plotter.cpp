@@ -590,7 +590,7 @@ void BRDITEMS_PLOTTER::PlotFootprintGraphicItem( const FP_SHAPE* aShape )
             for( const wxPoint& pt : pts )
                 poly.Append( pt );
 
-            m_plotter->PlotPoly( poly, FILL_TYPE::FILLED_SHAPE, -1, &gbr_metadata );
+            m_plotter->PlotPoly( poly, FILL_T::FILLED_SHAPE, -1, &gbr_metadata );
         }
     }
         break;
@@ -684,7 +684,7 @@ void BRDITEMS_PLOTTER::PlotFootprintGraphicItem( const FP_SHAPE* aShape )
                 for( int jj = 0; jj < tmpPoly.OutlineCount(); ++jj )
                 {
                     SHAPE_LINE_CHAIN &poly = tmpPoly.Outline( jj );
-                    m_plotter->PlotPoly( poly, FILL_TYPE::FILLED_SHAPE, thickness, &gbr_metadata );
+                    m_plotter->PlotPoly( poly, FILL_T::FILLED_SHAPE, thickness, &gbr_metadata );
                 }
             }
         }
@@ -816,8 +816,8 @@ void BRDITEMS_PLOTTER::PlotFilledAreas( const ZONE* aZone, const SHAPE_POLY_SET&
             {
                 if( outline_thickness > 0 )
                 {
-                    m_plotter->PlotPoly( outline, FILL_TYPE::NO_FILL,
-                                         outline_thickness, &gbr_metadata );
+                    m_plotter->PlotPoly( outline, FILL_T::NO_FILL, outline_thickness,
+                                         &gbr_metadata );
 
                     // Ensure the outline is closed:
                     int last_idx = outline.PointCount() - 1;
@@ -826,8 +826,7 @@ void BRDITEMS_PLOTTER::PlotFilledAreas( const ZONE* aZone, const SHAPE_POLY_SET&
                     {
                         m_plotter->ThickSegment( wxPoint( outline.CPoint( 0 ) ),
                                                  wxPoint( outline.CPoint( last_idx ) ),
-                                                 outline_thickness,
-                                                 GetPlotMode(), &gbr_metadata );
+                                                 outline_thickness, GetPlotMode(), &gbr_metadata );
                     }
                 }
 
@@ -836,8 +835,8 @@ void BRDITEMS_PLOTTER::PlotFilledAreas( const ZONE* aZone, const SHAPE_POLY_SET&
             }
             else
             {
-                m_plotter->PlotPoly( outline, FILL_TYPE::FILLED_SHAPE,
-                                     outline_thickness, &gbr_metadata );
+                m_plotter->PlotPoly( outline, FILL_T::FILLED_SHAPE, outline_thickness,
+                                     &gbr_metadata );
             }
         }
         else
@@ -967,7 +966,7 @@ void BRDITEMS_PLOTTER::PlotPcbShape( const PCB_SHAPE* aShape )
                 for( int jj = 0; jj < tmpPoly.OutlineCount(); ++jj )
                 {
                     SHAPE_LINE_CHAIN& poly = tmpPoly.Outline( jj );
-                    m_plotter->PlotPoly( poly, FILL_TYPE::FILLED_SHAPE, thickness, &gbr_metadata );
+                    m_plotter->PlotPoly( poly, FILL_T::FILLED_SHAPE, thickness, &gbr_metadata );
                 }
             }
         }
@@ -992,7 +991,7 @@ void BRDITEMS_PLOTTER::PlotPcbShape( const PCB_SHAPE* aShape )
             for( const wxPoint& pt : pts )
                 poly.Append( pt );
 
-            m_plotter->PlotPoly( poly, FILL_TYPE::FILLED_SHAPE, -1, &gbr_metadata );
+            m_plotter->PlotPoly( poly, FILL_T::FILLED_SHAPE, -1, &gbr_metadata );
         }
 
         break;

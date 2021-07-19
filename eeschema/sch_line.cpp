@@ -26,6 +26,7 @@
 #include <core/mirror.h>
 #include <sch_painter.h>
 #include <plotters/plotter.h>
+#include <geometry/shape_segment.h>
 #include <sch_line.h>
 #include <sch_edit_frame.h>
 #include <settings/color_settings.h>
@@ -34,6 +35,7 @@
 #include <project/net_settings.h>
 #include <trigo.h>
 #include <board_item.h>
+
 
 SCH_LINE::SCH_LINE( const wxPoint& pos, int layer ) :
     SCH_ITEM( nullptr, SCH_LINE_T )
@@ -335,45 +337,13 @@ void SCH_LINE::Print( const RENDER_SETTINGS* aSettings, const wxPoint& offset )
     }
     else
     {
-        EDA_RECT clip( (wxPoint) start, wxSize( end.x - start.x, end.y - start.y ) );
-        clip.Normalize();
+        SHAPE_SEGMENT segment( start, end );
 
-        double theta = atan2( end.y - start.y, end.x - start.x );
-        double strokes[] = { 1.0, DASH_GAP_LEN( penWidth ), 1.0, DASH_GAP_LEN( penWidth ) };
-
-        switch( lineStyle )
-        {
-        default:
-        case PLOT_DASH_TYPE::DASH:
-            strokes[0] = strokes[2] = DASH_MARK_LEN( penWidth );
-            break;
-        case PLOT_DASH_TYPE::DOT:
-            strokes[0] = strokes[2] = DOT_MARK_LEN( penWidth );
-            break;
-        case PLOT_DASH_TYPE::DASHDOT:
-            strokes[0] = DASH_MARK_LEN( penWidth );
-            strokes[2] = DOT_MARK_LEN( penWidth );
-            break;
-        }
-
-        for( size_t i = 0; i < 10000; ++i )
-        {
-            // Calculations MUST be done in doubles to keep from accumulating rounding
-            // errors as we go.
-            wxPoint next( start.x + strokes[ i % 4 ] * cos( theta ),
-                          start.y + strokes[ i % 4 ] * sin( theta ) );
-
-            // Drawing each segment can be done rounded to ints.
-            wxPoint segStart( KiROUND( start.x ), KiROUND( start.y ) );
-            wxPoint segEnd( KiROUND( next.x ), KiROUND( next.y ) );
-
-            if( ClipLine( &clip, segStart.x, segStart.y, segEnd.x, segEnd.y ) )
-                break;
-            else if( i % 2 == 0 )
-                GRLine( nullptr, DC, segStart.x, segStart.y, segEnd.x, segEnd.y, penWidth, color );
-
-            start = next;
-        }
+        STROKE_PARAMS::Stroke( &segment, lineStyle, penWidth, aSettings,
+                               [&]( const wxPoint& a, const wxPoint& b )
+                               {
+                                   GRLine( nullptr, DC, a.x, a.y, b.x, b.y, penWidth, color );
+                               } );
     }
 }
 

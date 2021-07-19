@@ -81,10 +81,6 @@ int SYMBOL_EDITOR_DRAWING_TOOLS::TwoClickPlace( const TOOL_EVENT& aEvent )
     m_frame->PushTool( tool );
     Activate();
 
-    // Prime the pump
-    if( aEvent.HasPosition() || ( isText && !aEvent.IsReactivate() ) )
-        m_toolMgr->RunAction( ACTIONS::cursorClick );
-
     auto setCursor =
             [&]()
             {
@@ -96,6 +92,19 @@ int SYMBOL_EDITOR_DRAWING_TOOLS::TwoClickPlace( const TOOL_EVENT& aEvent )
                     m_frame->GetCanvas()->SetCurrentCursor( KICURSOR::PENCIL );
             };
 
+    auto cleanup =
+            [&] ()
+            {
+                m_toolMgr->RunAction( EE_ACTIONS::clearSelection, true );
+                m_view->ClearPreview();
+                delete item;
+                item = nullptr;
+            };
+
+    // Prime the pump
+    if( aEvent.HasPosition() || ( isText && !aEvent.IsReactivate() ) )
+        m_toolMgr->RunAction( ACTIONS::cursorClick );
+
     // Set initial cursor
     setCursor();
 
@@ -105,15 +114,6 @@ int SYMBOL_EDITOR_DRAWING_TOOLS::TwoClickPlace( const TOOL_EVENT& aEvent )
         setCursor();
 
         cursorPos = getViewControls()->GetCursorPosition( !evt->DisableGridSnapping() );
-
-        auto cleanup =
-                [&] ()
-                {
-                    m_toolMgr->RunAction( EE_ACTIONS::clearSelection, true );
-                    m_view->ClearPreview();
-                    delete item;
-                    item = nullptr;
-                };
 
         if( evt->IsCancelInteractive() )
         {
@@ -259,8 +259,8 @@ int SYMBOL_EDITOR_DRAWING_TOOLS::TwoClickPlace( const TOOL_EVENT& aEvent )
 
 int SYMBOL_EDITOR_DRAWING_TOOLS::DrawShape( const TOOL_EVENT& aEvent )
 {
-    SYMBOL_EDITOR_SETTINGS* settings = Pgm().GetSettingsManager().GetAppSettings<SYMBOL_EDITOR_SETTINGS>();
-    SHAPE_T                 type = aEvent.Parameter<SHAPE_T>();
+    auto    settings = Pgm().GetSettingsManager().GetAppSettings<SYMBOL_EDITOR_SETTINGS>();
+    SHAPE_T type = aEvent.Parameter<SHAPE_T>();
 
     // We might be running as the same shape in another co-routine.  Make sure that one
     // gets whacked.
@@ -276,15 +276,24 @@ int SYMBOL_EDITOR_DRAWING_TOOLS::DrawShape( const TOOL_EVENT& aEvent )
     LIB_SYMBOL* symbol = m_frame->GetCurSymbol();
     LIB_ITEM* item = nullptr;
 
-    // Prime the pump
-    if( aEvent.HasPosition() )
-        m_toolMgr->RunAction( ACTIONS::cursorClick );
-
     auto setCursor =
             [&]()
             {
                 m_frame->GetCanvas()->SetCurrentCursor( KICURSOR::PENCIL );
             };
+
+    auto cleanup =
+            [&] ()
+            {
+                m_toolMgr->RunAction( EE_ACTIONS::clearSelection, true );
+                m_view->ClearPreview();
+                delete item;
+                item = nullptr;
+            };
+
+    // Prime the pump
+    if( aEvent.HasPosition() )
+        m_toolMgr->RunAction( ACTIONS::cursorClick );
 
     // Set initial cursor
     setCursor();
@@ -296,19 +305,12 @@ int SYMBOL_EDITOR_DRAWING_TOOLS::DrawShape( const TOOL_EVENT& aEvent )
 
         VECTOR2I cursorPos = getViewControls()->GetCursorPosition( !evt->DisableGridSnapping() );
 
-        auto cleanup =
-                [&] ()
-                {
-                    m_toolMgr->RunAction( EE_ACTIONS::clearSelection, true );
-                    m_view->ClearPreview();
-                    delete item;
-                    item = nullptr;
-                };
-
         if( evt->IsCancelInteractive() )
         {
             if( item )
+            {
                 cleanup();
+            }
             else
             {
                 m_frame->PopTool( tool );
@@ -377,7 +379,7 @@ int SYMBOL_EDITOR_DRAWING_TOOLS::DrawShape( const TOOL_EVENT& aEvent )
         }
         else if( item && ( evt->IsAction( &ACTIONS::refreshPreview ) || evt->IsMotion() ) )
         {
-            item->CalcEdit( wxPoint( cursorPos.x, -cursorPos.y) );
+            item->CalcEdit( wxPoint( cursorPos.x, -cursorPos.y ) );
             m_view->ClearPreview();
             m_view->AddToPreview( item->Clone() );
         }
@@ -512,9 +514,9 @@ void SYMBOL_EDITOR_DRAWING_TOOLS::setTransitions()
 {
     Go( &SYMBOL_EDITOR_DRAWING_TOOLS::TwoClickPlace,  EE_ACTIONS::placeSymbolPin.MakeEvent() );
     Go( &SYMBOL_EDITOR_DRAWING_TOOLS::TwoClickPlace,  EE_ACTIONS::placeSymbolText.MakeEvent() );
-    Go( &SYMBOL_EDITOR_DRAWING_TOOLS::DrawShape,      EE_ACTIONS::drawSymbolRectangle.MakeEvent() );
-    Go( &SYMBOL_EDITOR_DRAWING_TOOLS::DrawShape,      EE_ACTIONS::drawSymbolCircle.MakeEvent() );
-    Go( &SYMBOL_EDITOR_DRAWING_TOOLS::DrawShape,      EE_ACTIONS::drawSymbolArc.MakeEvent() );
+    Go( &SYMBOL_EDITOR_DRAWING_TOOLS::DrawShape,      EE_ACTIONS::drawRectangle.MakeEvent() );
+    Go( &SYMBOL_EDITOR_DRAWING_TOOLS::DrawShape,      EE_ACTIONS::drawCircle.MakeEvent() );
+    Go( &SYMBOL_EDITOR_DRAWING_TOOLS::DrawShape,      EE_ACTIONS::drawArc.MakeEvent() );
     Go( &SYMBOL_EDITOR_DRAWING_TOOLS::DrawShape,      EE_ACTIONS::drawSymbolLines.MakeEvent() );
     Go( &SYMBOL_EDITOR_DRAWING_TOOLS::PlaceAnchor,    EE_ACTIONS::placeSymbolAnchor.MakeEvent() );
     Go( &SYMBOL_EDITOR_DRAWING_TOOLS::RepeatDrawItem, EE_ACTIONS::repeatDrawItem.MakeEvent() );

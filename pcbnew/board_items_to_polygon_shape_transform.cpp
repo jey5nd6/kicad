@@ -421,7 +421,7 @@ void EDA_SHAPE::TransformShapeWithClearanceToPolygon( SHAPE_POLY_SET& aCornerBuf
                                                       int aError, ERROR_LOC aErrorLoc,
                                                       bool ignoreLineWidth ) const
 {
-    int width = ignoreLineWidth ? 0 : m_width;
+    int width = ignoreLineWidth ? 0 : GetWidth();
 
     width += 2 * aClearanceValue;
 
@@ -522,7 +522,7 @@ void EDA_SHAPE::TransformShapeWithClearanceToPolygon( SHAPE_POLY_SET& aCornerBuf
         std::vector<wxPoint> ctrlPts = { GetStart(), GetBezierC1(), GetBezierC2(), GetEnd() };
         BEZIER_POLY converter( ctrlPts );
         std::vector< wxPoint> poly;
-        converter.GetPoly( poly, m_width );
+        converter.GetPoly( poly, GetWidth() );
 
         for( unsigned ii = 1; ii < poly.size(); ii++ )
         {

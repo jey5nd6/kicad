@@ -49,6 +49,9 @@ public:
         return ShowShape();
     }
 
+    STROKE_PARAMS GetStroke() const { return m_stroke; }
+    void SetStroke( const STROKE_PARAMS& aStroke ) { m_stroke = aStroke; }
+
     bool HitTest( const wxPoint& aPosition, int aAccuracy = 0 ) const override;
     bool HitTest( const EDA_RECT& aRect, bool aContained, int aAccuracy = 0 ) const override;
 
@@ -59,7 +62,7 @@ public:
         // For historical reasons, a stored value of 0 means "default width" and negative
         // numbers meant "don't stroke".
 
-        if( GetPenWidth() < 0 && GetFillType() != FILL_T::NO_FILL )
+        if( GetPenWidth() < 0 && GetFillMode() != FILL_T::NO_FILL )
             return 0;
         else if( GetPenWidth() == 0 )
             return aSettings->GetDefaultPenWidth();
@@ -71,10 +74,11 @@ public:
 
     void GetMsgPanelInfo( EDA_DRAW_FRAME* aFrame, std::vector<MSG_PANEL_ITEM>& aList ) override;
 
-    void BeginEdit( const wxPoint& aStartPoint ) override;
-    bool ContinueEdit( const wxPoint& aPosition ) override;
-    void CalcEdit( const wxPoint& aPosition ) override;
-    void EndEdit() override;
+    void BeginEdit( const wxPoint& aStartPoint ) override  { beginEdit( aStartPoint ); }
+    bool ContinueEdit( const wxPoint& aPosition ) override { return continueEdit( aPosition ); }
+    void CalcEdit( const wxPoint& aPosition ) override     { calcEdit( aPosition ); }
+    void EndEdit() override                                { endEdit(); }
+    void SetEditState( int aState )                        { setEditState( aState ); }
 
     void AddPoint( const wxPoint& aPosition );
 
@@ -82,13 +86,11 @@ public:
 
     void MoveTo( const wxPoint& aPosition ) override;
 
-    wxPoint GetPosition() const override { return getPosition(); }
+    wxPoint GetPosition() const override                  { return getPosition(); }
     void SetPosition( const wxPoint& aPosition ) override { setPosition( aPosition ); }
 
     wxPoint GetCenter() const { return getCenter(); }
 
-    double GetArcAngleStart() const override;
-    double GetArcAngleEnd() const override;
     void CalcArcAngles( int& aStartAngle, int& aEndAngle ) const;
 
     void MirrorHorizontal( const wxPoint& aCenter ) override;

@@ -316,10 +316,7 @@ bool DIALOG_GRAPHIC_ITEM_PROPERTIES::TransferDataFromWindow()
     }
 
     if( m_item->GetShape() == SHAPE_T::ARC )
-    {
         m_item->SetCenter( CalcArcCenter( m_item->GetStart(), m_item->GetEnd(), m_AngleValue ) );
-        m_item->SetArcAngle( m_AngleValue * 10.0 );
-    }
 
     if( m_fp_item )
     {
@@ -341,7 +338,11 @@ bool DIALOG_GRAPHIC_ITEM_PROPERTIES::TransferDataFromWindow()
 
     m_item->SetFilled( m_filledCtrl->GetValue() );
     m_item->SetLocked( m_locked->GetValue() );
-    m_item->SetWidth( m_thickness.GetValue() );
+
+    STROKE_PARAMS stroke = m_item->GetStroke();
+    stroke.SetWidth( m_thickness.GetValue() );
+    m_item->SetStroke( stroke );
+
     m_item->SetLayer( ToLAYER_ID( layer ) );
 
     m_item->RebuildBezierToSegmentsPointsList( m_item->GetWidth() );

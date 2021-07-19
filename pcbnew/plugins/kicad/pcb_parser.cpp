@@ -2365,6 +2365,7 @@ PCB_SHAPE* PCB_PARSER::parsePCB_SHAPE()
 
     T token;
     wxPoint pt;
+    STROKE_PARAMS stroke( 0, PLOT_DASH_TYPE::SOLID );
     std::unique_ptr<PCB_SHAPE> shape = std::make_unique<PCB_SHAPE>( nullptr );
 
     switch( CurTok() )
@@ -2536,7 +2537,6 @@ PCB_SHAPE* PCB_PARSER::parsePCB_SHAPE()
     case T_gr_poly:
     {
         shape->SetShape( SHAPE_T::POLY );
-        shape->SetWidth( 0 ); // this is the default value. will be (perhaps) modified later
         shape->SetPolyPoints( {} );
 
         SHAPE_LINE_CHAIN& outline = shape->GetPolyShape().Outline( 0 );
@@ -2582,10 +2582,10 @@ PCB_SHAPE* PCB_PARSER::parsePCB_SHAPE()
         switch( token )
         {
         case T_angle:
-            angle = parseDouble( "segment angle" ) * 10.0;
+            angle = parseDouble( "arc angle" ) * 10.0;
 
             if( shape->GetShape() == SHAPE_T::ARC )
-                shape->SetArcAngleAndEnd( angle );
+                shape->SetArcAngleAndEnd( angle, true );
 
             NeedRIGHT();
             break;
@@ -2596,7 +2596,7 @@ PCB_SHAPE* PCB_PARSER::parsePCB_SHAPE()
             break;
 
         case T_width:
-            shape->SetWidth( parseBoardUnits( T_width ) );
+            stroke.SetWidth( parseBoardUnits( T_width ) );
             NeedRIGHT();
             break;
 
@@ -2655,7 +2655,7 @@ PCB_SHAPE* PCB_PARSER::parsePCB_SHAPE()
     {
         // Legacy versions didn't have a filled flag but allowed some shapes to indicate they
         // should be filled by specifying a 0 stroke-width.
-        if( shape->GetWidth() == 0
+        if( stroke.GetWidth() == 0
             && ( shape->GetShape() == SHAPE_T::RECT || shape->GetShape() == SHAPE_T::CIRCLE ) )
         {
             shape->SetFilled( true );
@@ -2669,10 +2669,12 @@ PCB_SHAPE* PCB_PARSER::parsePCB_SHAPE()
 
     // Only filled shapes may have a zero line-width.  This is not permitted in KiCad but some
     // external tools can generate invalid files.
-    if( shape->GetWidth() <= 0 && !shape->IsFilled() )
+    if( stroke.GetWidth() <= 0 && !shape->IsFilled() )
     {
-        shape->SetWidth( Millimeter2iu( DEFAULT_LINE_WIDTH ) );
+        stroke.SetWidth( Millimeter2iu( DEFAULT_LINE_WIDTH ) );
     }
+
+    shape->SetStroke( stroke );
 
     return shape.release();
 }
@@ -3635,6 +3637,7 @@ FP_SHAPE* PCB_PARSER::parseFP_SHAPE()
                  wxT( "Cannot parse " ) + GetTokenString( CurTok() ) + wxT( " as FP_SHAPE." ) );
 
     wxPoint pt;
+    STROKE_PARAMS stroke( 0, PLOT_DASH_TYPE::SOLID );
     T token;
 
     std::unique_ptr<FP_SHAPE> shape = std::make_unique<FP_SHAPE>( nullptr );
@@ -3681,7 +3684,7 @@ FP_SHAPE* PCB_PARSER::parseFP_SHAPE()
         if( token != T_angle )
             Expecting( T_angle );
 
-        shape->SetArcAngleAndEnd0( parseDouble( "segment angle" ) * 10.0 );
+        shape->SetArcAngleAndEnd0( parseDouble( "segment angle" ) * 10.0, true );
         NeedRIGHT();
         break;
 
@@ -3863,7 +3866,7 @@ FP_SHAPE* PCB_PARSER::parseFP_SHAPE()
             break;
 
         case T_width:
-            shape->SetWidth( parseBoardUnits( T_width ) );
+            stroke.SetWidth( parseBoardUnits( T_width ) );
             NeedRIGHT();
             break;
 
@@ -3922,7 +3925,7 @@ FP_SHAPE* PCB_PARSER::parseFP_SHAPE()
     {
         // Legacy versions didn't have a filled flag but allowed some shapes to indicate they
         // should be filled by specifying a 0 stroke-width.
-        if( shape->GetWidth() == 0
+        if( stroke.GetWidth() == 0
             && ( shape->GetShape() == SHAPE_T::RECT || shape->GetShape() == SHAPE_T::CIRCLE ) )
         {
             shape->SetFilled( true );
@@ -3936,10 +3939,12 @@ FP_SHAPE* PCB_PARSER::parseFP_SHAPE()
 
     // Only filled shapes may have a zero line-width.  This is not permitted in KiCad but some
     // external tools can generate invalid files.
-    if( shape->GetWidth() <= 0 && !shape->IsFilled() )
+    if( stroke.GetWidth() <= 0 && !shape->IsFilled() )
     {
-        shape->SetWidth( Millimeter2iu( DEFAULT_LINE_WIDTH ) );
+        stroke.SetWidth( Millimeter2iu( DEFAULT_LINE_WIDTH ) );
     }
+
+    shape->SetStroke( stroke );
 
     return shape.release();
 }

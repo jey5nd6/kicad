@@ -2084,6 +2084,8 @@ bool FABMASTER::loadFootprints( BOARD* aBoard )
                     if( IsPcbLayer( getLayer( seg->layer ) ) )
                         layer = getLayer( seg->layer );
 
+                    STROKE_PARAMS defaultStroke( ds.GetLineThickness( layer ) );
+
                     switch( seg->shape )
                     {
 
@@ -2106,11 +2108,11 @@ bool FABMASTER::loadFootprints( BOARD* aBoard )
                             line->SetEnd( wxPoint( lsrc->end_x, lsrc->end_y ) );
                         }
 
-                        line->SetWidth( lsrc->width );
+                        line->SetStroke( STROKE_PARAMS( lsrc->width, PLOT_DASH_TYPE::SOLID ) );
                         line->SetLocalCoord();
 
                         if( lsrc->width == 0 )
-                            line->SetWidth( ds.GetLineThickness( line->GetLayer() ) );
+                            line->SetStroke( defaultStroke );
 
                         fp->Add( line, ADD_MODE::APPEND );
                         break;
@@ -2136,11 +2138,11 @@ bool FABMASTER::loadFootprints( BOARD* aBoard )
                             arc->SetArcAngleAndEnd0( -lsrc->result.GetCentralAngle() * 10.0 );
                         }
 
-                        arc->SetWidth( lsrc->width );
+                        arc->SetStroke( STROKE_PARAMS( lsrc->width, PLOT_DASH_TYPE::SOLID ) );
                         arc->SetLocalCoord();
 
                         if( lsrc->width == 0 )
-                            arc->SetWidth( ds.GetLineThickness( arc->GetLayer() ) );
+                            arc->SetStroke( defaultStroke );
 
                         fp->Add( arc, ADD_MODE::APPEND );
                         break;
@@ -2165,7 +2167,7 @@ bool FABMASTER::loadFootprints( BOARD* aBoard )
                             rect->SetEnd( wxPoint( lsrc->end_x, lsrc->end_y ) );
                         }
 
-                        rect->SetWidth( ds.GetLineThickness( rect->GetLayer() ) );
+                        rect->SetStroke( defaultStroke );
                         rect->SetLocalCoord();
 
                         fp->Add( rect, ADD_MODE::APPEND );
@@ -2614,7 +2616,8 @@ bool FABMASTER::loadPolygon( BOARD* aBoard, const std::unique_ptr<FABMASTER::TRA
     if( poly_outline.OutlineCount() < 1 || poly_outline.COutline( 0 ).PointCount() < 3 )
         return false;
 
-    PCB_SHAPE* new_poly = new PCB_SHAPE( aBoard );
+    STROKE_PARAMS defaultStroke( aBoard->GetDesignSettings().GetLineThickness( layer ) );
+    PCB_SHAPE*    new_poly = new PCB_SHAPE( aBoard );
 
     new_poly->SetShape( SHAPE_T::POLY );
     new_poly->SetLayer( layer );
@@ -2623,14 +2626,15 @@ bool FABMASTER::loadPolygon( BOARD* aBoard, const std::unique_ptr<FABMASTER::TRA
     if( layer == F_SilkS || layer == B_SilkS )
     {
         new_poly->SetFilled( true );
-        new_poly->SetWidth( 0 );
+        new_poly->SetStroke( STROKE_PARAMS( 0 ) );
     }
     else
     {
-        new_poly->SetWidth( ( *( aLine->segment.begin() ) )->width );
+        new_poly->SetStroke( STROKE_PARAMS( ( *( aLine->segment.begin() ) )->width,
+                                            PLOT_DASH_TYPE::SOLID ) );
 
         if( new_poly->GetWidth() == 0 )
-            new_poly->SetWidth( aBoard->GetDesignSettings().GetLineThickness( layer ) );
+            new_poly->SetStroke( defaultStroke );
     }
 
     new_poly->SetPolyShape( poly_outline );
@@ -2750,6 +2754,8 @@ bool FABMASTER::loadOutline( BOARD* aBoard, const std::unique_ptr<FABMASTER::TRA
     else
         layer = Cmts_User;
 
+    STROKE_PARAMS defaultStroke( aBoard->GetDesignSettings().GetLineThickness( layer ) );
+
     for( auto& seg : aLine->segment )
     {
         switch( seg->shape )
@@ -2763,10 +2769,10 @@ bool FABMASTER::loadOutline( BOARD* aBoard, const std::unique_ptr<FABMASTER::TRA
             line->SetLayer( layer );
             line->SetStart( wxPoint( src->start_x, src->start_y ) );
             line->SetEnd( wxPoint( src->end_x, src->end_y ) );
-            line->SetWidth( src->width );
+            line->SetStroke( STROKE_PARAMS( src->width, PLOT_DASH_TYPE::SOLID ) );
 
             if( line->GetWidth() == 0 )
-                line->SetWidth( aBoard->GetDesignSettings().GetLineThickness( layer ) );
+                line->SetStroke( defaultStroke );
 
             aBoard->Add( line, ADD_MODE::APPEND );
             break;
@@ -2780,10 +2786,10 @@ bool FABMASTER::loadOutline( BOARD* aBoard, const std::unique_ptr<FABMASTER::TRA
             arc->SetCenter( wxPoint( src->center_x, src->center_y ) );
             arc->SetStart( wxPoint( src->start_x, src->start_y ) );
             arc->SetArcAngleAndEnd( src->result.GetCentralAngle() * 10.0 );
-            arc->SetWidth( src->width );
+            arc->SetStroke( STROKE_PARAMS( src->width, PLOT_DASH_TYPE::SOLID ) );
 
             if( arc->GetWidth() == 0 )
-                arc->SetWidth( aBoard->GetDesignSettings().GetLineThickness( layer ) );
+                arc->SetStroke( defaultStroke );
 
             aBoard->Add( arc, ADD_MODE::APPEND );
             break;
@@ -2797,7 +2803,7 @@ bool FABMASTER::loadOutline( BOARD* aBoard, const std::unique_ptr<FABMASTER::TRA
             rect->SetLayer( layer );
             rect->SetStart( wxPoint( src->start_x, src->start_y ) );
             rect->SetEnd( wxPoint( src->end_x, src->end_y ) );
-            rect->SetWidth( aBoard->GetDesignSettings().GetLineThickness( layer ) );
+            rect->SetStroke( defaultStroke );
 
             aBoard->Add( rect, ADD_MODE::APPEND );
             break;
@@ -2859,7 +2865,7 @@ bool FABMASTER::loadGraphics( BOARD* aBoard )
                 PCB_SHAPE* new_poly = new PCB_SHAPE( aBoard, SHAPE_T::POLY );
                 new_poly->SetLayer( layer );
                 new_poly->SetPolyShape( poly_outline );
-                new_poly->SetWidth( 0 );
+                new_poly->SetStroke( STROKE_PARAMS( 0 ) );
 
                 if( layer == F_SilkS || layer == B_SilkS )
                     new_poly->SetFilled( true );
@@ -2881,7 +2887,7 @@ bool FABMASTER::loadGraphics( BOARD* aBoard )
                 line->SetLayer( layer );
                 line->SetStart( wxPoint( src->start_x, src->start_y ) );
                 line->SetEnd( wxPoint( src->end_x, src->end_y ) );
-                line->SetWidth( src->width );
+                line->SetStroke( STROKE_PARAMS( src->width, PLOT_DASH_TYPE::SOLID ) );
 
                 aBoard->Add( line, ADD_MODE::APPEND );
                 break;
@@ -2895,7 +2901,7 @@ bool FABMASTER::loadGraphics( BOARD* aBoard )
                 arc->SetCenter( wxPoint( src->center_x, src->center_y ) );
                 arc->SetStart( wxPoint( src->start_x, src->start_y ) );
                 arc->SetArcAngleAndEnd( src->result.GetCentralAngle() * 10.0 );
-                arc->SetWidth( src->width );
+                arc->SetStroke( STROKE_PARAMS( src->width, PLOT_DASH_TYPE::SOLID ) );
 
                 aBoard->Add( arc, ADD_MODE::APPEND );
                 break;
@@ -2909,7 +2915,7 @@ bool FABMASTER::loadGraphics( BOARD* aBoard )
                 rect->SetLayer( layer );
                 rect->SetStart( wxPoint( src->start_x, src->start_y ) );
                 rect->SetEnd( wxPoint( src->end_x, src->end_y ) );
-                rect->SetWidth( 0 );
+                rect->SetStroke( STROKE_PARAMS( 0 ) );
                 aBoard->Add( rect, ADD_MODE::APPEND );
                 break;
             }
@@ -2943,9 +2949,7 @@ bool FABMASTER::loadGraphics( BOARD* aBoard )
 
 bool FABMASTER::orderZones( BOARD* aBoard )
 {
-    std::vector<ZONE*> zones = aBoard->Zones();
-
-    std::sort( zones.begin(), zones.end(),
+    std::sort( aBoard->Zones().begin(), aBoard->Zones().end(),
             [&]( const ZONE* a, const ZONE* b )
             {
                 if( a->GetLayer() == b->GetLayer() )
@@ -2957,7 +2961,7 @@ bool FABMASTER::orderZones( BOARD* aBoard )
     PCB_LAYER_ID layer = UNDEFINED_LAYER;
     unsigned int priority = 0;
 
-    for( ZONE* zone : zones )
+    for( ZONE* zone : aBoard->Zones() )
     {
         if( zone->GetLayer() != layer )
         {

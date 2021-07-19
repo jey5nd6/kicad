@@ -703,7 +703,7 @@ void EAGLE_PLUGIN::loadPlain( wxXmlNode* aGraphics )
                 }
 
                 shape->SetLayer( layer );
-                shape->SetWidth( width );
+                shape->SetStroke( STROKE_PARAMS( width, PLOT_DASH_TYPE::SOLID ) );
             }
 
             m_xpath->pop();
@@ -876,7 +876,7 @@ void EAGLE_PLUGIN::loadPlain( wxXmlNode* aGraphics )
                     shape->SetLayer( layer );
                     shape->SetStart( wxPoint( kicad_x( c.x ), kicad_y( c.y ) ) );
                     shape->SetEnd( wxPoint( kicad_x( c.x ) + radius, kicad_y( c.y ) ) );
-                    shape->SetWidth( width );
+                    shape->SetStroke( STROKE_PARAMS( width, PLOT_DASH_TYPE::SOLID ) );
                 }
             }
 
@@ -1753,7 +1753,7 @@ void EAGLE_PLUGIN::packageWire( FOOTPRINT* aFootprint, wxXmlNode* aTree ) const
     }
 
     dwg->SetLayer( layer );
-    dwg->SetWidth( width );
+    dwg->SetStroke( STROKE_PARAMS( width, PLOT_DASH_TYPE::SOLID ) );
     dwg->SetDrawCoord();
 
     aFootprint->Add( dwg );
@@ -2020,7 +2020,7 @@ void EAGLE_PLUGIN::packageRectangle( FOOTPRINT* aFootprint, wxXmlNode* aTree ) c
         aFootprint->Add( dwg );
 
         dwg->SetLayer( layer );
-        dwg->SetWidth( 0 );
+        dwg->SetStroke( STROKE_PARAMS( 0 ) );
 
         std::vector<wxPoint> pts;
 
@@ -2132,7 +2132,7 @@ void EAGLE_PLUGIN::packagePolygon( FOOTPRINT* aFootprint, wxXmlNode* aTree ) con
 
         aFootprint->Add( dwg );
 
-        dwg->SetWidth( 0 ); // it's filled, no need for boundary width
+        dwg->SetStroke( STROKE_PARAMS( 0 ) ); // it's filled, no need for boundary width
         dwg->SetLayer( layer );
 
         dwg->SetPolyPoints( pts );
@@ -2210,7 +2210,7 @@ void EAGLE_PLUGIN::packageCircle( FOOTPRINT* aFootprint, wxXmlNode* aTree ) cons
         }
 
         aFootprint->Add( gr );
-        gr->SetWidth( width );
+        gr->SetStroke( STROKE_PARAMS( width, PLOT_DASH_TYPE::SOLID ) );
 
         switch( (int) layer )
         {

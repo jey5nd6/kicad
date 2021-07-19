@@ -71,7 +71,7 @@ public:
      * Sets the angle for arcs, and normalizes it within the range 0 - 360 degrees.
      * @param aAngle is tenths of degrees, but will soon be degrees.
      */
-    void SetArcAngleAndEnd0( double aAngle );
+    void SetArcAngleAndEnd0( double aAngle, bool aCheckNegativeAngle = false );
 
     /**
      * Move an edge of the footprint.

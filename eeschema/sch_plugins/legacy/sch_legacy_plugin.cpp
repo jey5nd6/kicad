@@ -41,6 +41,7 @@
 #include <trigo.h>
 #include <progress_reporter.h>
 #include <general.h>
+#include <gr_text.h>
 #include <sch_bitmap.h>
 #include <sch_bus_entry.h>
 #include <sch_symbol.h>
@@ -3268,7 +3269,8 @@ LIB_SHAPE* SCH_LEGACY_PLUGIN_CACHE::loadArc( std::unique_ptr<LIB_SYMBOL>& aSymbo
 
     arc->SetUnit( parseInt( aReader, line, &line ) );
     arc->SetConvert( parseInt( aReader, line, &line ) );
-    arc->SetWidth( Mils2Iu( parseInt( aReader, line, &line ) ) );
+    arc->SetStroke( STROKE_PARAMS( Mils2Iu( parseInt( aReader, line, &line ) ),
+                                   PLOT_DASH_TYPE::SOLID ) );
 
     // Old libraries (version <= 2.2) do not have always this FILL MODE param
     // when fill mode is no fill (default mode).
@@ -3341,7 +3343,8 @@ LIB_SHAPE* SCH_LEGACY_PLUGIN_CACHE::loadCircle( std::unique_ptr<LIB_SYMBOL>& aSy
     circle->SetEnd( wxPoint( center.x + radius, center.y ) );
     circle->SetUnit( parseInt( aReader, line, &line ) );
     circle->SetConvert( parseInt( aReader, line, &line ) );
-    circle->SetWidth( Mils2Iu( parseInt( aReader, line, &line ) ) );
+    circle->SetStroke( STROKE_PARAMS( Mils2Iu( parseInt( aReader, line, &line ) ),
+                                      PLOT_DASH_TYPE::SOLID ) );
 
     if( *line != 0 )
         circle->SetFillMode( parseFillMode( aReader, line, &line ) );
@@ -3470,7 +3473,8 @@ LIB_SHAPE* SCH_LEGACY_PLUGIN_CACHE::loadRect( std::unique_ptr<LIB_SYMBOL>& aSymb
 
     rectangle->SetUnit( parseInt( aReader, line, &line ) );
     rectangle->SetConvert( parseInt( aReader, line, &line ) );
-    rectangle->SetWidth( Mils2Iu( parseInt( aReader, line, &line ) ) );
+    rectangle->SetStroke( STROKE_PARAMS( Mils2Iu( parseInt( aReader, line, &line ) ),
+                                         PLOT_DASH_TYPE::SOLID ) );
 
     if( *line != 0 )
         rectangle->SetFillMode( parseFillMode( aReader, line, &line ) );
@@ -3690,7 +3694,8 @@ LIB_SHAPE* SCH_LEGACY_PLUGIN_CACHE::loadPolyLine( std::unique_ptr<LIB_SYMBOL>& a
     int points = parseInt( aReader, line, &line );
     polyLine->SetUnit( parseInt( aReader, line, &line ) );
     polyLine->SetConvert( parseInt( aReader, line, &line ) );
-    polyLine->SetWidth( Mils2Iu( parseInt( aReader, line, &line ) ) );
+    polyLine->SetStroke( STROKE_PARAMS( Mils2Iu( parseInt( aReader, line, &line ) ),
+                                        PLOT_DASH_TYPE::SOLID ) );
 
     wxPoint pt;
 
@@ -3723,7 +3728,8 @@ LIB_SHAPE* SCH_LEGACY_PLUGIN_CACHE::loadBezier( std::unique_ptr<LIB_SYMBOL>& aSy
 
     bezier->SetUnit( parseInt( aReader, line, &line ) );
     bezier->SetConvert( parseInt( aReader, line, &line ) );
-    bezier->SetWidth( Mils2Iu( parseInt( aReader, line, &line ) ) );
+    bezier->SetStroke( STROKE_PARAMS( Mils2Iu( parseInt( aReader, line, &line ) ),
+                                      PLOT_DASH_TYPE::SOLID ) );
 
     bezier->SetStart( wxPoint( Mils2Iu( parseInt( aReader, line, &line ) ),
                                Mils2Iu( parseInt( aReader, line, &line ) ) ) );

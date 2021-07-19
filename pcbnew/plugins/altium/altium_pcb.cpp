@@ -843,6 +843,9 @@ void ALTIUM_PCB::HelperCreateBoardOutline( const std::vector<ALTIUM_VERTICE>& aV
     if( !aVertices.empty() )
     {
         const ALTIUM_VERTICE* last = &aVertices.at( 0 );
+        STROKE_PARAMS         stroke( m_board->GetDesignSettings().GetLineThickness( Edge_Cuts ),
+                                      PLOT_DASH_TYPE::SOLID );
+
         for( size_t i = 0; i < aVertices.size(); i++ )
         {
             const ALTIUM_VERTICE* cur = &aVertices.at( ( i + 1 ) % aVertices.size() );
@@ -850,7 +853,7 @@ void ALTIUM_PCB::HelperCreateBoardOutline( const std::vector<ALTIUM_VERTICE>& aV
             PCB_SHAPE* shape = new PCB_SHAPE( m_board );
             m_board->Add( shape, ADD_MODE::APPEND );
 
-            shape->SetWidth( m_board->GetDesignSettings().GetLineThickness( Edge_Cuts ) );
+            shape->SetStroke( stroke );
             shape->SetLayer( Edge_Cuts );
 
             if( !last->isRound && !cur->isRound )
@@ -882,7 +885,7 @@ void ALTIUM_PCB::HelperCreateBoardOutline( const std::vector<ALTIUM_VERTICE>& aV
 
                     PCB_SHAPE* shape2 = new PCB_SHAPE( m_board, SHAPE_T::SEGMENT );
                     m_board->Add( shape2, ADD_MODE::APPEND );
-                    shape2->SetWidth( m_board->GetDesignSettings().GetLineThickness( Edge_Cuts ) );
+                    shape2->SetStroke( stroke );
                     shape2->SetLayer( Edge_Cuts );
                     shape2->SetStart( last->position );
 
@@ -1241,7 +1244,7 @@ void ALTIUM_PCB::HelperParseDimensions6Leader( const ADIMENSION6& aElem )
             PCB_SHAPE* shape = new PCB_SHAPE( m_board, SHAPE_T::SEGMENT );
             m_board->Add( shape, ADD_MODE::APPEND );
             shape->SetLayer( klayer );
-            shape->SetWidth( aElem.linewidth );
+            shape->SetStroke( STROKE_PARAMS( aElem.linewidth, PLOT_DASH_TYPE::SOLID ) );
             shape->SetStart( last );
             shape->SetEnd( aElem.referencePoint.at( i ) );
             last = aElem.referencePoint.at( i );
@@ -1261,7 +1264,7 @@ void ALTIUM_PCB::HelperParseDimensions6Leader( const ADIMENSION6& aElem )
                 PCB_SHAPE* shape1 = new PCB_SHAPE( m_board, SHAPE_T::SEGMENT );
                 m_board->Add( shape1, ADD_MODE::APPEND );
                 shape1->SetLayer( klayer );
-                shape1->SetWidth( aElem.linewidth );
+                shape1->SetStroke( STROKE_PARAMS( aElem.linewidth, PLOT_DASH_TYPE::SOLID ) );
                 shape1->SetStart( referencePoint0 );
                 shape1->SetEnd( referencePoint0 + arrVec );
 
@@ -1270,7 +1273,7 @@ void ALTIUM_PCB::HelperParseDimensions6Leader( const ADIMENSION6& aElem )
                 PCB_SHAPE* shape2 = new PCB_SHAPE( m_board, SHAPE_T::SEGMENT );
                 m_board->Add( shape2, ADD_MODE::APPEND );
                 shape2->SetLayer( klayer );
-                shape2->SetWidth( aElem.linewidth );
+                shape2->SetStroke( STROKE_PARAMS( aElem.linewidth, PLOT_DASH_TYPE::SOLID ) );
                 shape2->SetStart( referencePoint0 );
                 shape2->SetEnd( referencePoint0 + arrVec );
             }
@@ -1312,7 +1315,7 @@ void ALTIUM_PCB::HelperParseDimensions6Datum( const ADIMENSION6& aElem )
         PCB_SHAPE* shape = new PCB_SHAPE( m_board, SHAPE_T::SEGMENT );
         m_board->Add( shape, ADD_MODE::APPEND );
         shape->SetLayer( klayer );
-        shape->SetWidth( aElem.linewidth );
+        shape->SetStroke( STROKE_PARAMS( aElem.linewidth, PLOT_DASH_TYPE::SOLID ) );
         shape->SetStart( aElem.referencePoint.at( i ) );
         // shape->SetEnd( /* TODO: seems to be based on TEXTY */ );
     }
@@ -1788,7 +1791,7 @@ void ALTIUM_PCB::ParseShapeBasedRegions6Data( const CFB::CompoundFileReader& aRe
                 m_board->Add( shape, ADD_MODE::APPEND );
                 shape->SetFilled( true );
                 shape->SetLayer( klayer );
-                shape->SetWidth( 0 );
+                shape->SetStroke( STROKE_PARAMS( 0 ) );
 
                 shape->SetPolyShape( linechain );
             }
@@ -1919,7 +1922,7 @@ void ALTIUM_PCB::ParseArcs6Data( const CFB::CompoundFileReader& aReader,
         if( elem.is_keepout || IsAltiumLayerAPlane( elem.layer ) )
         {
             PCB_SHAPE shape( nullptr ); // just a helper to get the graphic
-            shape.SetWidth( elem.width );
+            shape.SetStroke( STROKE_PARAMS( elem.width, PLOT_DASH_TYPE::SOLID ) );
 
             if( elem.startangle == 0. && elem.endangle == 360. )
             { // TODO: other variants to define circle?
@@ -2024,7 +2027,7 @@ void ALTIUM_PCB::ParseArcs6Data( const CFB::CompoundFileReader& aReader,
         else
         {
             PCB_SHAPE* shape = HelperCreateAndAddShape( elem.component );
-            shape->SetWidth( elem.width );
+            shape->SetStroke( STROKE_PARAMS( elem.width, PLOT_DASH_TYPE::SOLID ) );
             shape->SetLayer( klayer );
 
             if( elem.startangle == 0. && elem.endangle == 360. )
@@ -2322,7 +2325,7 @@ void ALTIUM_PCB::HelperParsePad6NonCopper( const APAD6& aElem )
         shape->SetShape( SHAPE_T::POLY );
         shape->SetFilled( true );
         shape->SetLayer( klayer );
-        shape->SetWidth( 0 );
+        shape->SetStroke( STROKE_PARAMS( 0 ) );
 
         shape->SetPolyPoints( { aElem.position + wxPoint( aElem.topsize.x / 2, aElem.topsize.y / 2 ),
                                 aElem.position + wxPoint( aElem.topsize.x / 2, -aElem.topsize.y / 2 ),
@@ -2346,7 +2349,7 @@ void ALTIUM_PCB::HelperParsePad6NonCopper( const APAD6& aElem )
 
             PCB_SHAPE* shape = HelperCreateAndAddShape( aElem.component );
             shape->SetLayer( klayer );
-            shape->SetWidth( offset * 2 );
+            shape->SetStroke( STROKE_PARAMS( offset * 2, PLOT_DASH_TYPE::SOLID ) );
 
             if( cornerradius < 100 )
             {
@@ -2369,7 +2372,7 @@ void ALTIUM_PCB::HelperParsePad6NonCopper( const APAD6& aElem )
                 shape->SetFilled( true );
                 shape->SetStart( aElem.position );
                 shape->SetEnd( aElem.position - wxPoint( 0, aElem.topsize.x / 4 ) );
-                shape->SetWidth( aElem.topsize.x / 2 );
+                shape->SetStroke( STROKE_PARAMS( aElem.topsize.x / 2, PLOT_DASH_TYPE::SOLID ) );
             }
             else if( aElem.topsize.x < aElem.topsize.y )
             {
@@ -2402,7 +2405,7 @@ void ALTIUM_PCB::HelperParsePad6NonCopper( const APAD6& aElem )
             shape->SetLayer( klayer );
             shape->SetStart( aElem.position );
             shape->SetEnd( aElem.position - wxPoint( 0, aElem.topsize.x / 4 ) );
-            shape->SetWidth( aElem.topsize.x / 2 );
+            shape->SetStroke( STROKE_PARAMS( aElem.topsize.x / 2, PLOT_DASH_TYPE::SOLID ) );
             HelperShapeSetLocalCoord( shape, aElem.component );
         }
         else
@@ -2411,7 +2414,8 @@ void ALTIUM_PCB::HelperParsePad6NonCopper( const APAD6& aElem )
             PCB_SHAPE* shape = HelperCreateAndAddShape( aElem.component );
             shape->SetShape( SHAPE_T::SEGMENT );
             shape->SetLayer( klayer );
-            shape->SetWidth( std::min( aElem.topsize.x, aElem.topsize.y ) );
+            shape->SetStroke( STROKE_PARAMS( std::min( aElem.topsize.x, aElem.topsize.y ),
+                                                       PLOT_DASH_TYPE::SOLID ) );
 
             if( aElem.topsize.x < aElem.topsize.y )
             {
@@ -2440,7 +2444,7 @@ void ALTIUM_PCB::HelperParsePad6NonCopper( const APAD6& aElem )
         shape->SetShape( SHAPE_T::POLY );
         shape->SetFilled( true );
         shape->SetLayer( klayer );
-        shape->SetWidth( 0 );
+        shape->SetStroke( STROKE_PARAMS( 0 ) );
 
         wxPoint p11 = aElem.position + wxPoint( aElem.topsize.x / 2, aElem.topsize.y / 2 );
         wxPoint p12 = aElem.position + wxPoint( aElem.topsize.x / 2, -aElem.topsize.y / 2 );
@@ -2557,7 +2561,7 @@ void ALTIUM_PCB::ParseTracks6Data( const CFB::CompoundFileReader& aReader,
             PCB_SHAPE shape( nullptr, SHAPE_T::SEGMENT );
             shape.SetStart( elem.start );
             shape.SetEnd( elem.end );
-            shape.SetWidth( elem.width );
+            shape.SetStroke( STROKE_PARAMS( elem.width, PLOT_DASH_TYPE::SOLID ) );
 
             ZONE* zone = new ZONE( m_board );
             m_board->Add( zone, ADD_MODE::APPEND );
@@ -2605,7 +2609,7 @@ void ALTIUM_PCB::ParseTracks6Data( const CFB::CompoundFileReader& aReader,
             klayer = Eco1_User;
         }
 
-        if( klayer >= F_Cu && klayer <= B_Cu )
+        if( IsCopperLayer( klayer ) )
         {
             PCB_TRACK* track = new PCB_TRACK( m_board );
             m_board->Add( track, ADD_MODE::APPEND );
@@ -2622,7 +2626,7 @@ void ALTIUM_PCB::ParseTracks6Data( const CFB::CompoundFileReader& aReader,
             shape->SetShape( SHAPE_T::SEGMENT );
             shape->SetStart( elem.start );
             shape->SetEnd( elem.end );
-            shape->SetWidth( elem.width );
+            shape->SetStroke( STROKE_PARAMS( elem.width, PLOT_DASH_TYPE::SOLID ) );
             shape->SetLayer( klayer );
             HelperShapeSetLocalCoord( shape, elem.component );
         }
@@ -2894,7 +2898,7 @@ void ALTIUM_PCB::ParseFills6Data( const CFB::CompoundFileReader& aReader,
             m_board->Add( shape, ADD_MODE::APPEND );
             shape->SetFilled( true );
             shape->SetLayer( klayer );
-            shape->SetWidth( 0 );
+            shape->SetStroke( STROKE_PARAMS( 0 ) );
 
             shape->SetPolyPoints( { p11, p12, p22, p21 } );
 

@@ -32,6 +32,7 @@
 #include <gr_basic.h>
 #include <layer_ids.h>
 #include <geometry/geometry_utils.h>
+#include <stroke_params.h>
 
 class BOARD;
 class BOARD_ITEM_CONTAINER;
@@ -133,6 +134,16 @@ public:
     virtual std::shared_ptr<SHAPE> GetEffectiveShape( PCB_LAYER_ID aLayer = UNDEFINED_LAYER ) const;
 
     BOARD_ITEM_CONTAINER* GetParent() const { return (BOARD_ITEM_CONTAINER*) m_parent; }
+
+    /**
+     * Check if this item has line stoke properties.
+     *
+     * @see #STROKE_PARAMS
+     */
+    virtual bool HasLineStroke() const { return false; }
+
+    virtual STROKE_PARAMS GetStroke() const;
+    virtual void SetStroke( const STROKE_PARAMS& aStroke );
 
     /**
      * Return the primary layer this item is on.

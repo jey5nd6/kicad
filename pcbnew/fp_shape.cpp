@@ -102,7 +102,7 @@ void FP_SHAPE::SetDrawCoord()
         m_bezierC2   += fp->GetPosition();
     }
 
-    RebuildBezierToSegmentsPointsList( m_width );
+    RebuildBezierToSegmentsPointsList( GetWidth() );
 }
 
 
@@ -172,13 +172,13 @@ void FP_SHAPE::SetCenter0( const wxPoint& aCenter )
 }
 
 
-void FP_SHAPE::SetArcAngleAndEnd0( double aAngle )
+void FP_SHAPE::SetArcAngleAndEnd0( double aAngle, bool aCheckNegativeAngle )
 {
-    PCB_SHAPE::SetArcAngle( aAngle );
+    m_end0 = m_start0;
+    RotatePoint( &m_end0, m_arcCenter0, -NormalizeAngle360Max( aAngle ) );
 
-    wxPoint end = GetStart0();
-    RotatePoint( &end, GetCenter0(), -m_arcAngle );
-    SetEnd0( end );
+    if( aCheckNegativeAngle && aAngle < 0 )
+        std::swap( m_start0, m_end0 );
 }
 
 
@@ -226,7 +226,7 @@ void FP_SHAPE::Flip( const wxPoint& aCentre, bool aFlipLeftRight )
         }
 
         if( GetShape() == SHAPE_T::BEZIER )
-            RebuildBezierToSegmentsPointsList( m_width );
+            RebuildBezierToSegmentsPointsList( GetWidth() );
 
         break;
 
@@ -279,7 +279,7 @@ void FP_SHAPE::Mirror( const wxPoint& aCentre, bool aMirrorAroundXAxis )
         }
 
         if( GetShape() == SHAPE_T::BEZIER )
-            RebuildBezierToSegmentsPointsList( m_width );
+            RebuildBezierToSegmentsPointsList( GetWidth() );
 
         break;
 

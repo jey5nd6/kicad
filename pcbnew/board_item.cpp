@@ -30,6 +30,7 @@
 #include <i18n_utility.h>
 #include <macros.h>
 #include <board.h>
+#include <board_design_settings.h>
 #include <pcb_group.h>
 
 
@@ -67,6 +68,18 @@ bool BOARD_ITEM::IsLocked() const
         return GetParentGroup()->IsLocked();
 
     return GetState( LOCKED );
+}
+
+
+STROKE_PARAMS BOARD_ITEM::GetStroke() const
+{
+    wxCHECK( false, STROKE_PARAMS( Millimeter2iu( DEFAULT_LINE_WIDTH ) ) );
+}
+
+
+void BOARD_ITEM::SetStroke( const STROKE_PARAMS& aStroke )
+{
+    wxCHECK( false, /* void */ );
 }
 
 

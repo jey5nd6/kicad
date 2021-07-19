@@ -85,6 +85,9 @@ public:
     static TOOL_ACTION drawSheet;
     static TOOL_ACTION importSheetPin;
     static TOOL_ACTION placeSchematicText;
+    static TOOL_ACTION drawRectangle;
+    static TOOL_ACTION drawCircle;
+    static TOOL_ACTION drawArc;
     static TOOL_ACTION drawLines;
     static TOOL_ACTION placeImage;
     static TOOL_ACTION finishLineWireOrBus;
@@ -96,9 +99,6 @@ public:
     // Symbol Tools
     static TOOL_ACTION placeSymbolPin;
     static TOOL_ACTION placeSymbolText;
-    static TOOL_ACTION drawSymbolRectangle;
-    static TOOL_ACTION drawSymbolCircle;
-    static TOOL_ACTION drawSymbolArc;
     static TOOL_ACTION drawSymbolLines;
     static TOOL_ACTION placeSymbolAnchor;
     static TOOL_ACTION finishDrawing;

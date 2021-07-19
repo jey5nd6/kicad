@@ -41,7 +41,6 @@
 #include <eda_item.h>
 #include <plotters/plotter.h>
 #include <geometry/shape_line_chain.h>
-#include <geometry/geometry_utils.h>
 #include <bezier_curves.h>
 #include <math/util.h>      // for KiROUND
 
@@ -138,19 +137,19 @@ double PLOTTER::userToDeviceSize( double size ) const
 
 double PLOTTER::GetDotMarkLenIU() const
 {
-    return userToDeviceSize( DOT_MARK_LEN( GetCurrentLineWidth() ) );
+    return userToDeviceSize( m_renderSettings->GetDotLength( GetCurrentLineWidth() ) );
 }
 
 
 double PLOTTER::GetDashMarkLenIU() const
 {
-    return userToDeviceSize( DASH_MARK_LEN( GetCurrentLineWidth() ) );
+    return userToDeviceSize( m_renderSettings->GetDashLength( GetCurrentLineWidth() ) );
 }
 
 
 double PLOTTER::GetDashGapLenIU() const
 {
-    return userToDeviceSize( DASH_GAP_LEN( GetCurrentLineWidth() ) );
+    return userToDeviceSize( m_renderSettings->GetGapLength( GetCurrentLineWidth() ) );
 }
 
 

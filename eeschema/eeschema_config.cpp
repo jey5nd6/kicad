@@ -88,6 +88,9 @@ bool SCH_EDIT_FRAME::LoadProjectSettings()
     GetRenderSettings()->m_PinSymbolSize        = settings.m_PinSymbolSize;
     GetRenderSettings()->m_JunctionSize         = settings.m_JunctionSize;
 
+    GetRenderSettings()->SetDashLengthRatio( settings.m_DashedLineDashRatio );
+    GetRenderSettings()->SetGapLengthRatio( settings.m_DashedLineGapRatio );
+
     // Verify some values, because the config file can be edited by hand,
     // and have bad values:
     LIB_SYMBOL::SetSubpartIdNotation( LIB_SYMBOL::GetSubpartIdSeparator(),

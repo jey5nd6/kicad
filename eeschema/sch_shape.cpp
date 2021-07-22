@@ -407,6 +407,9 @@ void SCH_SHAPE::AddPoint( const wxPoint& aPosition )
 
 void SCH_SHAPE::CalcArcAngles( int& aStartAngle, int& aEndAngle ) const
 {
+    // JEY TODO: only used now for plotting.
+
+
     wxPoint centerStartVector = GetStart() - GetCenter();
     wxPoint centerEndVector   = GetEnd() - GetCenter();
 

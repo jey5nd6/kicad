@@ -45,6 +45,8 @@ void PANEL_SETUP_FORMATTING::onCheckBoxIref( wxCommandEvent& event )
 {
     bool enabled = m_showIntersheetsReferences->GetValue();
 
+    m_dashedLineHelp->SetFont( KIUI::GetInfoFont() );
+
     m_radioFormatStandard->Enable( enabled );
     m_radioFormatAbbreviated->Enable( enabled );
     m_prefixCtrl->Enable( enabled );
@@ -94,8 +96,14 @@ bool PANEL_SETUP_FORMATTING::TransferDataToWindow()
     m_suffixCtrl->ChangeValue( settings.m_IntersheetRefsSuffix );
     m_listOwnPage->SetValue( settings.m_IntersheetRefsListOwnPage );
 
-    wxString offsetRatio = wxString::Format( "%f", settings.m_TextOffsetRatio * 100.0 );
-    m_textOffsetRatioCtrl->SetValue( offsetRatio );
+    m_textOffsetRatioCtrl->SetValue( StringFromValue( EDA_UNITS::PERCENT,
+                                                      settings.m_TextOffsetRatio ) );
+
+    m_dashLengthCtrl->SetValue( StringFromValue( EDA_UNITS::UNSCALED,
+                                                 settings.m_DashedLineDashRatio ) );
+
+    m_gapLengthCtrl->SetValue( StringFromValue( EDA_UNITS::UNSCALED,
+                                                settings.m_DashedLineGapRatio ) );
 
     wxString labelSizeRatio = wxString::Format( "%f", settings.m_LabelSizeRatio * 100.0 );
     m_labelSizeRatioCtrl->SetValue( labelSizeRatio );
@@ -144,19 +152,26 @@ bool PANEL_SETUP_FORMATTING::TransferDataFromWindow()
     settings.m_IntersheetRefsSuffix      = m_suffixCtrl->GetValue();
     settings.m_IntersheetRefsListOwnPage = m_listOwnPage->GetValue();
 
-    double dtmp = DEFAULT_TEXT_OFFSET_RATIO;
-    m_textOffsetRatioCtrl->GetValue().ToDouble( &dtmp );
-    settings.m_TextOffsetRatio = dtmp / 100.0;
+    settings.m_TextOffsetRatio =     DoubleValueFromString( EDA_UNITS::PERCENT,
+                                                            m_textOffsetRatioCtrl->GetValue() );
 
-    dtmp = DEFAULT_LABEL_SIZE_RATIO;
-    m_labelSizeRatioCtrl->GetValue().ToDouble( &dtmp );
-    settings.m_LabelSizeRatio = dtmp / 100.0;
+    settings.m_DashedLineDashRatio = DoubleValueFromString( EDA_UNITS::UNSCALED,
+                                                            m_dashLengthCtrl->GetValue() );
+
+    settings.m_DashedLineGapRatio =  DoubleValueFromString( EDA_UNITS::UNSCALED,
+                                                            m_gapLengthCtrl->GetValue() );
+
+    settings.m_LabelSizeRatio =      DoubleValueFromString( EDA_UNITS::PERCENT,
+                                                            m_labelSizeRatioCtrl->GetValue() );
 
     m_frame->GetRenderSettings()->SetDefaultPenWidth( settings.m_DefaultLineWidth );
     m_frame->GetRenderSettings()->m_LabelSizeRatio  = settings.m_LabelSizeRatio;
     m_frame->GetRenderSettings()->m_TextOffsetRatio = settings.m_TextOffsetRatio;
     m_frame->GetRenderSettings()->m_PinSymbolSize   = settings.m_PinSymbolSize;
     m_frame->GetRenderSettings()->m_JunctionSize    = settings.m_JunctionSize;
+
+    m_frame->GetRenderSettings()->SetDashLengthRatio( settings.m_DashedLineDashRatio );
+    m_frame->GetRenderSettings()->SetGapLengthRatio( settings.m_DashedLineGapRatio );
 
     m_frame->GetCanvas()->GetView()->MarkDirty();
     m_frame->GetCanvas()->GetView()->UpdateAllItems( KIGFX::REPAINT );

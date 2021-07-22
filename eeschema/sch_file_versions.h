@@ -65,4 +65,5 @@
 //#define SEXPR_SCHEMATIC_FILE_VERSION 20210606  // Change overbar syntax from `~...~` to `~{...}`.
 //#define SEXPR_SCHEMATIC_FILE_VERSION 20210615  // Update overbar syntax in net names.
 //#define SEXPR_SCHEMATIC_FILE_VERSION 20210621  // Update overbar syntax in bus aliases.
-#define SEXPR_SCHEMATIC_FILE_VERSION 20210901  // Circles, arcs, rects, polys & beziers
+//#define SEXPR_SCHEMATIC_FILE_VERSION 20210901  // Circles, arcs, rects, polys & beziers
+#define SEXPR_SCHEMATIC_FILE_VERSION 20210902  // Dash-dot-dot

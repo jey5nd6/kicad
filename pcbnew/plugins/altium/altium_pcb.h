@@ -85,7 +85,7 @@ class BOARD;
 class PCB_SHAPE;
 class FOOTPRINT;
 class ZONE;
-class PCB_DIMENSION_BASE;
+class PCB_DIM_RADIAL;
 class PROGRESS_REPORTER;
 
 
@@ -191,7 +191,7 @@ private:
     BOARD*                               m_board;
     std::vector<FOOTPRINT*>              m_components;
     std::vector<ZONE*>                   m_polygons;
-    std::vector<PCB_DIMENSION_BASE*>     m_radialDimensions;
+    std::vector<PCB_DIM_RADIAL*>         m_radialDimensions;
     std::map<wxString, wxString>         m_models;
     size_t                               m_num_nets;
     std::map<ALTIUM_LAYER, PCB_LAYER_ID> m_layermap; // used to correctly map copper layers

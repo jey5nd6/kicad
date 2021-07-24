@@ -3435,24 +3435,6 @@ FOOTPRINT* PCB_PARSER::parseFOOTPRINT_unchecked( wxArrayString* aInitialComments
         }
 
         case T_fp_arc:
-        {
-            FP_SHAPE* shape = parseFP_SHAPE();
-
-            // Drop 0 and NaN angles as these can corrupt/crash the schematic
-            if( std::isnormal( shape->GetArcAngle() ) )
-            {
-                shape->SetParent( footprint.get() );
-                shape->SetDrawCoord();
-                footprint->Add( shape, ADD_MODE::APPEND );
-            }
-            else
-            {
-                delete shape;
-            }
-
-            break;
-        }
-
         case T_fp_circle:
         case T_fp_curve:
         case T_fp_rect:

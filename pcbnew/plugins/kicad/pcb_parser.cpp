@@ -2582,7 +2582,7 @@ PCB_SHAPE* PCB_PARSER::parsePCB_SHAPE()
         switch( token )
         {
         case T_angle:
-            angle = parseDouble( "arc angle" ) * 10.0;
+            angle = parseAngle( "arc angle" );
 
             if( shape->GetShape() == SHAPE_T::ARC )
                 shape->SetArcAngleAndEnd( angle, true );
@@ -2708,7 +2708,7 @@ PCB_TEXT* PCB_PARSER::parsePCB_TEXT()
 
     if( token == T_NUMBER )
     {
-        text->SetTextAngle( parseDouble() * 10.0 );
+        text->SetTextAngle( parseAngle() );
         NeedRIGHT();
     }
     else if( token != T_RIGHT )
@@ -3287,7 +3287,7 @@ FOOTPRINT* PCB_PARSER::parseFOOTPRINT_unchecked( wxArrayString* aInitialComments
 
             if( token == T_NUMBER )
             {
-                footprint->SetOrientation( parseDouble() * 10.0 );
+                footprint->SetOrientation( parseAngle() );
                 NeedRIGHT();
             }
             else if( token != T_RIGHT )
@@ -3358,12 +3358,9 @@ FOOTPRINT* PCB_PARSER::parseFOOTPRINT_unchecked( wxArrayString* aInitialComments
             break;
 
         case T_thermal_width:
-            footprint->SetThermalWidth( parseBoardUnits( "thermal width value" ) );
-            NeedRIGHT();
-            break;
-
         case T_thermal_gap:
-            footprint->SetThermalGap( parseBoardUnits( "thermal gap value" ) );
+            // Interestingly, these have never been exposed in the GUI
+            parseBoardUnits( token );
             NeedRIGHT();
             break;
 
@@ -3482,7 +3479,7 @@ FOOTPRINT* PCB_PARSER::parseFOOTPRINT_unchecked( wxArrayString* aInitialComments
             Expecting( "locked, placed, tedit, tstamp, at, descr, tags, path, "
                        "autoplace_cost90, autoplace_cost180, solder_mask_margin, "
                        "solder_paste_margin, solder_paste_ratio, clearance, "
-                       "zone_connect, thermal_width, thermal_gap, attr, fp_text, "
+                       "zone_connect, thermal_gap, attr, fp_text, "
                        "fp_arc, fp_circle, fp_curve, fp_line, fp_poly, fp_rect, pad, "
                        "zone, group, generator, version or model" );
         }
@@ -3562,7 +3559,7 @@ FP_TEXT* PCB_PARSER::parseFP_TEXT()
 
     if( CurTok() == T_NUMBER )
     {
-        text->SetTextAngle( parseDouble() * 10.0 );
+        text->SetTextAngle( parseAngle() );
         NextTok();
     }
 
@@ -3666,7 +3663,7 @@ FP_SHAPE* PCB_PARSER::parseFP_SHAPE()
         if( token != T_angle )
             Expecting( T_angle );
 
-        shape->SetArcAngleAndEnd0( parseDouble( "segment angle" ) * 10.0, true );
+        shape->SetArcAngleAndEnd0( parseAngle( "segment angle" ), true );
         NeedRIGHT();
         break;
 
@@ -4014,6 +4011,13 @@ PAD* PCB_PARSER::parsePAD( FOOTPRINT* aParent )
         Expecting( "circle, rectangle, roundrect, oval, trapezoid or custom" );
     }
 
+    if( pad->GetShape() == PAD_SHAPE::CIRCLE )
+        pad->SetThermalSpokeAngle( 450 );
+    else if( pad->GetShape() == PAD_SHAPE::CUSTOM && pad->GetAnchorPadShape() == PAD_SHAPE::CIRCLE )
+        pad->SetThermalSpokeAngle( 450 );
+    else
+        pad->SetThermalSpokeAngle( 900 );
+
     for( token = NextTok();  token != T_RIGHT;  token = NextTok() )
     {
         if( token == T_locked )
@@ -4044,7 +4048,7 @@ PAD* PCB_PARSER::parsePAD( FOOTPRINT* aParent )
 
             if( token == T_NUMBER )
             {
-                pad->SetOrientation( parseDouble() * 10.0 );
+                pad->SetOrientation( parseAngle() );
                 NeedRIGHT();
             }
             else if( token != T_RIGHT )
@@ -4201,13 +4205,20 @@ PAD* PCB_PARSER::parsePAD( FOOTPRINT* aParent )
             NeedRIGHT();
             break;
 
-        case T_thermal_width:
-            pad->SetThermalSpokeWidth( parseBoardUnits( T_thermal_width ) );
+        case T_thermal_width:       // legacy token
+        case T_thermal_bridge_width:
+            pad->SetThermalSpokeWidth( parseBoardUnits( token ) );
             NeedRIGHT();
             break;
 
+        case T_thermal_bridge_angle:
+            pad->SetThermalSpokeAngle( parseAngle( "thermal spoke angle value" ) );
+            NeedRIGHT();
+            break;
+
+
         case T_thermal_gap:
-            pad->SetThermalGap( parseBoardUnits( T_thermal_gap ) );
+            pad->SetThermalGap( parseBoardUnits( "thermal relief gap value" ) );
             NeedRIGHT();
             break;
 

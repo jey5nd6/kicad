@@ -101,7 +101,8 @@ class PCB_TEXT;
 //#define SEXPR_BOARD_FILE_VERSION    20210623  // Add support for reading/writing arcs in polygons
 //#define SEXPR_BOARD_FILE_VERSION    20210722  // Reading/writing group locked flags
 //#define SEXPR_BOARD_FILE_VERSION    20210824  // Opacity in 3D colors
-#define SEXPR_BOARD_FILE_VERSION      20210901  // Add radial dimension
+//#define SEXPR_BOARD_FILE_VERSION    20210901  // Add radial dimension
+#define SEXPR_BOARD_FILE_VERSION      20210902  // Add thermal relief spoke angle overrides
 
 #define BOARD_FILE_HOST_VERSION       20200825  ///< Earlier files than this include the host tag
 

@@ -165,6 +165,7 @@ bool padsSame( PAD* a, PAD* b )
     TEST( a->GetZoneConnection(), b->GetZoneConnection() );
     TEST( a->GetThermalGap(), b->GetThermalGap() );
     TEST( a->GetThermalSpokeWidth(), b->GetThermalSpokeWidth() );
+    TEST( a->GetThermalSpokeAngle(), b->GetThermalSpokeAngle() );
     TEST( a->GetCustomShapeInZoneOpt(), b->GetCustomShapeInZoneOpt() );
 
     TEST( a->GetPrimitives().size(), b->GetPrimitives().size() );
@@ -330,8 +331,6 @@ bool footprintsSame( std::shared_ptr<FOOTPRINT>& a, FOOTPRINT* b )
     TEST( a->GetLocalSolderPasteMarginRatio(), b->GetLocalSolderPasteMarginRatio() );
 
     TEST( a->GetZoneConnection(), b->GetZoneConnection() );
-    TEST( a->GetThermalWidth(), b->GetThermalWidth() );
-    TEST( a->GetThermalGap(), b->GetThermalGap() );
 
     // Text items are really problematic.  We don't want to test the reference, but after that
     // it gets messy.  What about the value?  Depends on whether or not it's a singleton part.

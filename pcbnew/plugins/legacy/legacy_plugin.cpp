@@ -1310,12 +1310,10 @@ void LEGACY_PLUGIN::loadFOOTPRINT( FOOTPRINT* aFootprint )
         else if( TESTLINE( ".ThermalWidth" ) )
         {
             BIU tmp = biuParse( line + SZ( ".ThermalWidth" ) );
-            aFootprint->SetThermalWidth( tmp );
         }
         else if( TESTLINE( ".ThermalGap" ) )
         {
             BIU tmp = biuParse( line + SZ( ".ThermalGap" ) );
-            aFootprint->SetThermalGap( tmp );
         }
         else if( TESTLINE( "$EndMODULE" ) )
         {

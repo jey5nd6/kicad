@@ -925,6 +925,8 @@ int EDIT_TOOL::doMoveSelection( TOOL_EVENT aEvent, bool aPickReference )
                         break;
                 }
 
+                editFrame->HideSolderMask();
+
                 m_dragging = true;
 
                 // When editing footprints, all items have the same parent

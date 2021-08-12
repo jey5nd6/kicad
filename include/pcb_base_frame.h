@@ -218,6 +218,9 @@ public:
 
     void FocusOnItem( BOARD_ITEM* aItem );
 
+    void HideSolderMask();
+    void ShowSolderMask();
+
     // General
     virtual void ReCreateOptToolbar() override { }
     virtual void ShowChangedLanguage() override;

@@ -1100,6 +1100,8 @@ public:
 
     std::map< ZONE*, std::unique_ptr<DRC_RTREE> >         m_CopperZoneRTrees;
 
+    ZONE*                                                 m_SolderMask;
+
 private:
     // The default copy constructor & operator= are inadequate,
     // either write one or do not use it at all

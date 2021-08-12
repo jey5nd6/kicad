@@ -2,7 +2,7 @@
  * This program source code file is part of KiCad, a free EDA CAD application.
  *
  * Copyright (C) 2012 CERN.
- * Copyright (C) 1992-2020 KiCad Developers, see AUTHORS.txt for contributors.
+ * Copyright (C) 1992-2021 KiCad Developers, see AUTHORS.txt for contributors.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -102,7 +102,8 @@ class PCB_TEXT;
 //#define SEXPR_BOARD_FILE_VERSION    20210722  // Reading/writing group locked flags
 //#define SEXPR_BOARD_FILE_VERSION    20210824  // Opacity in 3D colors
 //#define SEXPR_BOARD_FILE_VERSION    20210901  // Add radial dimension
-#define SEXPR_BOARD_FILE_VERSION      20210902  // Add thermal relief spoke angle overrides
+//#define SEXPR_BOARD_FILE_VERSION    20210902  // Add thermal relief spoke angle overrides
+#define SEXPR_BOARD_FILE_VERSION      20210903  // Add allow_soldermask_bridges footprint attribute
 
 #define BOARD_FILE_HOST_VERSION       20200825  ///< Earlier files than this include the host tag
 

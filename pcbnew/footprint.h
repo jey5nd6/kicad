@@ -65,11 +65,12 @@ enum INCLUDE_NPTH_T
  */
 enum FOOTPRINT_ATTR_T
 {
-    FP_THROUGH_HOLE           = 0x0001,
-    FP_SMD                    = 0x0002,
-    FP_EXCLUDE_FROM_POS_FILES = 0x0004,
-    FP_EXCLUDE_FROM_BOM       = 0x0008,
-    FP_BOARD_ONLY             = 0x0010    // Footprint has no corresponding symbol
+    FP_THROUGH_HOLE             = 0x0001,
+    FP_SMD                      = 0x0002,
+    FP_EXCLUDE_FROM_POS_FILES   = 0x0004,
+    FP_EXCLUDE_FROM_BOM         = 0x0008,
+    FP_BOARD_ONLY               = 0x0010,    // Footprint has no corresponding symbol
+    FP_ALLOW_SOLDERMASK_BRIDGES = 0x0020
 };
 
 class FP_3DMODEL

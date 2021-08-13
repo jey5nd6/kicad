@@ -55,17 +55,15 @@
           "width": 0.0
         }
       ],
-      "drc_exclusions": [
-        "aperture_clearance|94357878|76822362|b3d0f5dc-561b-4b80-9916-54cfebf1cf6c|1340d930-98a6-4495-983b-cb22e9c8fd90"
-      ],
+      "drc_exclusions": [],
       "meta": {
         "version": 2
       },
       "rule_severities": {
         "annular_width": "error",
-        "aperture_clearance": "error",
         "clearance": "error",
         "copper_edge_clearance": "error",
+        "copper_sliver": "warning",
         "courtyards_overlap": "error",
         "diff_pair_gap_out_of_range": "error",
         "diff_pair_uncoupled_length_too_long": "error",
@@ -91,6 +89,7 @@
         "silk_over_copper": "ignore",
         "silk_overlap": "warning",
         "skew_out_of_range": "error",
+        "solder_mask_bridge": "error",
         "starved_thermal": "error",
         "text_height": "warning",
         "text_thickness": "warning",
@@ -109,7 +108,7 @@
         "allow_microvias": false,
         "max_error": 0.005,
         "min_aperture_clearance": 0.049999999999999996,
-        "min_clearance": 0.2032,
+        "min_clearance": 0.17779999999999999,
         "min_copper_edge_clearance": 0.19999999999999998,
         "min_hole_clearance": 0.0,
         "min_hole_to_hole": 0.25,

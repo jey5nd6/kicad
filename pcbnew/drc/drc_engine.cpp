@@ -823,8 +823,8 @@ DRC_CONSTRAINT DRC_ENGINE::EvalRules( DRC_CONSTRAINT_T aConstraintType, const BO
     bool a_is_non_copper = a && ( !a->IsOnCopperLayer() || isKeepoutZone( a, false ) );
     bool b_is_non_copper = b && ( !b->IsOnCopperLayer() || isKeepoutZone( b, false ) );
 
-    const PAD*            pad  = nullptr;
-    const ZONE*           zone = nullptr;
+    const PAD*  pad  = nullptr;
+    const ZONE* zone = nullptr;
 
     if( aConstraintType == ZONE_CONNECTION_CONSTRAINT
      || aConstraintType == THERMAL_RELIEF_GAP_CONSTRAINT
@@ -1197,6 +1197,8 @@ DRC_CONSTRAINT DRC_ENGINE::EvalRules( DRC_CONSTRAINT_T aConstraintType, const BO
                         // masked them down to aItem's type -- so we're really only looking for a
                         // boolean here.
                         constraint.m_DisallowFlags = c->constraint.m_DisallowFlags;
+
+                        constraint.m_ZoneConnection = c->constraint.m_ZoneConnection;
 
                         constraint.SetParentRule( c->constraint.GetParentRule() );
 

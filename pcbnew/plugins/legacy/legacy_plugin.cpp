@@ -1309,11 +1309,11 @@ void LEGACY_PLUGIN::loadFOOTPRINT( FOOTPRINT* aFootprint )
         }
         else if( TESTLINE( ".ThermalWidth" ) )
         {
-            BIU tmp = biuParse( line + SZ( ".ThermalWidth" ) );
+            (void) biuParse( line + SZ( ".ThermalWidth" ) );
         }
         else if( TESTLINE( ".ThermalGap" ) )
         {
-            BIU tmp = biuParse( line + SZ( ".ThermalGap" ) );
+            (void) biuParse( line + SZ( ".ThermalGap" ) );
         }
         else if( TESTLINE( "$EndMODULE" ) )
         {

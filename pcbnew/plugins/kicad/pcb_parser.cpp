@@ -2023,7 +2023,7 @@ void PCB_PARSER::parseSetup()
         }
 
         case T_pad_to_mask_clearance:
-            designSettings.m_SolderMaskMargin = parseBoardUnits( T_pad_to_mask_clearance );
+            designSettings.m_SolderMaskExpansion = parseBoardUnits( T_pad_to_mask_clearance );
             NeedRIGHT();
             break;
 

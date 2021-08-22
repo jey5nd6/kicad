@@ -109,10 +109,6 @@ DIALOG_FOOTPRINT_PROPERTIES_FP_EDITOR::DIALOG_FOOTPRINT_PROPERTIES_FP_EDITOR(
     m_staticTextInfoCopper->SetFont( infoFont );
     m_staticTextInfoPaste->SetFont( infoFont );
 
-    infoFont.SetStyle( wxFONTSTYLE_ITALIC );
-    m_staticTextInfoValNeg->SetFont( infoFont );
-    m_staticTextInfoValPos->SetFont( infoFont );
-
     if( static_cast<int>( m_page ) >= 0 )
         m_NoteBook->SetSelection( (unsigned) m_page );
 

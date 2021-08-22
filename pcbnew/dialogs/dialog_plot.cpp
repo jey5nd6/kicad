@@ -260,7 +260,7 @@ void DIALOG_PLOT::reInitDialog()
     const BOARD_DESIGN_SETTINGS& brd_settings = board->GetDesignSettings();
 
     if( getPlotFormat() == PLOT_FORMAT::GERBER &&
-        ( brd_settings.m_SolderMaskMargin || brd_settings.m_SolderMaskMinWidth ) )
+        ( brd_settings.m_SolderMaskExpansion || brd_settings.m_SolderMaskMinWidth ) )
     {
         m_PlotOptionsSizer->Show( m_SizerSolderMaskAlert );
     }
@@ -436,7 +436,7 @@ void DIALOG_PLOT::SetPlotFormat( wxCommandEvent& event )
     const BOARD_DESIGN_SETTINGS& brd_settings = board->GetDesignSettings();
 
     if( getPlotFormat() == PLOT_FORMAT::GERBER &&
-        ( brd_settings.m_SolderMaskMargin || brd_settings.m_SolderMaskMinWidth ) )
+        ( brd_settings.m_SolderMaskExpansion || brd_settings.m_SolderMaskMinWidth ) )
     {
         m_PlotOptionsSizer->Show( m_SizerSolderMaskAlert );
     }

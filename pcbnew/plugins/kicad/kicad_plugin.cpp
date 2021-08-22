@@ -483,7 +483,7 @@ void PCB_IO::formatSetup( const BOARD* aBoard, int aNestLevel ) const
     BOARD_DESIGN_SETTINGS& dsnSettings = aBoard->GetDesignSettings();
 
     m_out->Print( aNestLevel+1, "(pad_to_mask_clearance %s)\n",
-                  FormatInternalUnits( dsnSettings.m_SolderMaskMargin ).c_str() );
+                  FormatInternalUnits( dsnSettings.m_SolderMaskExpansion ).c_str() );
 
     if( dsnSettings.m_SolderMaskMinWidth )
         m_out->Print( aNestLevel+1, "(solder_mask_min_width %s)\n",

@@ -59,6 +59,7 @@ DIALOG_BOARD_SETUP::DIALOG_BOARD_SETUP( PCB_EDIT_FRAME* aFrame ) :
 
     m_layers = new PANEL_SETUP_LAYERS( this, aFrame );
     m_textAndGraphics = new PANEL_SETUP_TEXT_AND_GRAPHICS( this, aFrame );
+    m_formatting = new PANEL_SETUP_FORMATTING( this, aFrame );
     m_constraints = new PANEL_SETUP_CONSTRAINTS( this, aFrame );
     m_rules = new PANEL_SETUP_RULES( this, aFrame );
     m_tracksAndVias = new PANEL_SETUP_TRACKS_AND_VIAS( this, aFrame, m_constraints );
@@ -98,6 +99,7 @@ DIALOG_BOARD_SETUP::DIALOG_BOARD_SETUP( PCB_EDIT_FRAME* aFrame ) :
 
     m_treebook->AddPage( new wxPanel( this ),  _( "Text & Graphics" ) );
     m_treebook->AddSubPage( m_textAndGraphics,  _( "Defaults" ) );
+    m_treebook->AddSubPage( m_formatting, _( "Fomatting" ) );
     m_treebook->AddSubPage( m_textVars, _( "Text Variables" ) );
 
     m_treebook->AddPage( new wxPanel( this ),  _( "Design Rules" ) );
@@ -248,6 +250,9 @@ void DIALOG_BOARD_SETUP::OnAuxiliaryAction( wxCommandEvent& event )
         if( importDlg.m_TextAndGraphicsOpt->GetValue() )
             m_textAndGraphics->ImportSettingsFrom( otherBoard );
 
+        if( importDlg.m_FormattingOpt->GetValue() )
+            m_formatting->ImportSettingsFrom( otherBoard );
+
         if( importDlg.m_ConstraintsOpt->GetValue() )
             m_constraints->ImportSettingsFrom( otherBoard );
 
@@ -270,7 +275,10 @@ void DIALOG_BOARD_SETUP::OnAuxiliaryAction( wxCommandEvent& event )
         // TODO: Add import of physical settings now that we are actually loading the board here
 
         if( importDlg.m_LayersOpt->GetValue() )
+        {
             m_physicalStackup->ImportSettingsFrom( otherBoard );
+            m_boardFinish->ImportSettingsFrom( otherBoard );
+        }
 
         if( importDlg.m_SeveritiesOpt->GetValue() )
             m_severities->ImportSettingsFrom( otherBoard->GetDesignSettings().m_DRCSeverities );

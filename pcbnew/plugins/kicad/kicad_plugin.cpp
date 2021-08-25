@@ -830,11 +830,11 @@ void PCB_IO::format( const PCB_SHAPE* aShape, int aNestLevel ) const
         break;
 
     case SHAPE_T::ARC:
-        m_out->Print( aNestLevel, "(gr_arc%s (start %s) (end %s) (angle %s)",
+        m_out->Print( aNestLevel, "(gr_arc%s (start %s) (mid %s) (end %s)",
                       locked.c_str(),
-                      FormatInternalUnits( aShape->GetCenter() ).c_str(),
                       FormatInternalUnits( aShape->GetStart() ).c_str(),
-                      FormatAngle( aShape->GetArcAngle() ).c_str() );
+                      FormatInternalUnits( aShape->GetArcMid() ).c_str(),
+                      FormatInternalUnits( aShape->GetEnd() ).c_str() );
         break;
 
     case SHAPE_T::POLY:
@@ -915,9 +915,9 @@ void PCB_IO::format( const PCB_SHAPE* aShape, int aNestLevel ) const
         return;
     };
 
-    formatLayer( aShape );
+    m_out->Print( 0, "\n" );
 
-    m_out->Print( 0, " (width %s)", FormatInternalUnits( aShape->GetWidth() ).c_str() );
+    aShape->GetStroke().Format( m_out, aNestLevel + 1 );
 
     // The filled flag represents if a solid fill is present on circles, rectangles and polygons
     if( ( aShape->GetShape() == SHAPE_T::POLY )
@@ -929,6 +929,8 @@ void PCB_IO::format( const PCB_SHAPE* aShape, int aNestLevel ) const
         else
             m_out->Print( 0, " (fill none)" );
     }
+
+    formatLayer( aShape );
 
     m_out->Print( 0, " (tstamp %s)", TO_UTF8( aShape->m_Uuid.AsString() ) );
 
@@ -964,11 +966,11 @@ void PCB_IO::format( const FP_SHAPE* aFPShape, int aNestLevel ) const
         break;
 
     case SHAPE_T::ARC:
-        m_out->Print( aNestLevel, "(fp_arc%s (start %s) (end %s) (angle %s)",
+        m_out->Print( aNestLevel, "(fp_arc%s (start %s) (mid %s) (end %s)",
                       locked.c_str(),
-                      FormatInternalUnits( aFPShape->GetCenter0() ).c_str(),
-                      FormatInternalUnits( aFPShape->GetStart0() ).c_str(),
-                      FormatAngle( aFPShape->GetArcAngle() ).c_str() );
+                      FormatInternalUnits( aFPShape->GetStart() ).c_str(),
+                      FormatInternalUnits( aFPShape->GetArcMid() ).c_str(),
+                      FormatInternalUnits( aFPShape->GetEnd() ).c_str() );
         break;
 
     case SHAPE_T::POLY:
@@ -1048,9 +1050,9 @@ void PCB_IO::format( const FP_SHAPE* aFPShape, int aNestLevel ) const
         return;
     };
 
-    formatLayer( aFPShape );
+    m_out->Print( 0, "\n" );
 
-    m_out->Print( 0, " (width %s)", FormatInternalUnits( aFPShape->GetWidth() ).c_str() );
+    aFPShape->GetStroke().Format( m_out, aNestLevel + 1 );
 
     // The filled flag represents if a solid fill is present on circles, rectangles and polygons
     if( ( aFPShape->GetShape() == SHAPE_T::POLY )
@@ -1062,6 +1064,8 @@ void PCB_IO::format( const FP_SHAPE* aFPShape, int aNestLevel ) const
         else
             m_out->Print( 0, " (fill none)" );
     }
+
+    formatLayer( aFPShape );
 
     m_out->Print( 0, " (tstamp %s)", TO_UTF8( aFPShape->m_Uuid.AsString() ) );
 
@@ -1642,10 +1646,10 @@ void PCB_IO::format( const PAD* aPad, int aNestLevel ) const
                 break;
 
             case SHAPE_T::ARC:
-                m_out->Print( nested_level, "(gr_arc (start %s) (end %s) (angle %s)",
-                              FormatInternalUnits( primitive->GetCenter() ).c_str(),
+                m_out->Print( aNestLevel, "(gr_arc (start %s) (mid %s) (end %s)",
                               FormatInternalUnits( primitive->GetStart() ).c_str(),
-                              FormatAngle( primitive->GetArcAngle() ).c_str() );
+                              FormatInternalUnits( primitive->GetArcMid() ).c_str(),
+                              FormatInternalUnits( primitive->GetEnd() ).c_str() );
                 break;
 
             case SHAPE_T::CIRCLE:
@@ -2321,7 +2325,7 @@ BOARD* PCB_IO::DoLoad( LINE_READER& aReader, BOARD* aAppendToMe, const PROPERTIE
 
     m_parser->SetLineReader( &aReader );
     m_parser->SetBoard( aAppendToMe );
-    m_parser->SetProgressReporter( aProgressReporter, &aReader, aLineCount );
+    m_parser->SetProgressReporter( aProgressReporter, aLineCount );
 
     BOARD* board;
 

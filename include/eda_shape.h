@@ -92,6 +92,7 @@ public:
     COLOR4D GetFillColor() const               { return m_fillColor; }
     void SetFillColor( const COLOR4D& aColor ) { m_fillColor = aColor; }
 
+    void SetWidth( int aWidth )                { m_stroke.SetWidth( aWidth ); }
     int GetWidth() const                       { return m_stroke.GetWidth(); }
 
     void SetShape( SHAPE_T aShape )         { m_shape = aShape; }

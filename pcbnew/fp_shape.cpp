@@ -368,6 +368,11 @@ static struct FP_SHAPE_DESC
     {
         PROPERTY_MANAGER& propMgr = PROPERTY_MANAGER::Instance();
         REGISTER_TYPE( FP_SHAPE );
+        propMgr.AddTypeCast( new TYPE_CAST<FP_SHAPE, BOARD_ITEM> );
+        propMgr.AddTypeCast( new TYPE_CAST<FP_SHAPE, EDA_SHAPE> );
+        propMgr.AddTypeCast( new TYPE_CAST<FP_SHAPE, PCB_SHAPE> );
+        propMgr.InheritsAfter( TYPE_HASH( FP_SHAPE ), TYPE_HASH( BOARD_ITEM ) );
+        propMgr.InheritsAfter( TYPE_HASH( FP_SHAPE ), TYPE_HASH( EDA_SHAPE ) );
         propMgr.InheritsAfter( TYPE_HASH( FP_SHAPE ), TYPE_HASH( PCB_SHAPE ) );
 
         propMgr.AddProperty( new PROPERTY<FP_SHAPE, wxString>( _HKI( "Parent" ),

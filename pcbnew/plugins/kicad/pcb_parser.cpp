@@ -114,7 +114,7 @@ void PCB_PARSER::checkpoint()
 
     if( m_progressReporter )
     {
-        unsigned curLine = m_lineReader->LineNumber();
+        unsigned curLine = reader->LineNumber();
 
         if( curLine > m_lastProgressLine + PROGRESS_DELTA )
         {
@@ -2385,25 +2385,60 @@ PCB_SHAPE* PCB_PARSER::parsePCB_SHAPE()
 
         token = NextTok();
 
-        // the start keyword actually gives the arc center
-        // Allows also T_center for future change
-        if( token != T_start && token != T_center )
-            Expecting( T_start );
+        if( m_requiredVersion <= LEGACY_ARC_FORMATTING )
+        {
+            // In legacy files the start keyword actually gives the arc center...
+            if( token != T_start )
+                Expecting( T_start );
 
-        pt.x = parseBoardUnits( "X coordinate" );
-        pt.y = parseBoardUnits( "Y coordinate" );
-        shape->SetCenter( pt );
-        NeedRIGHT();
-        NeedLEFT();
-        token = NextTok();
+            pt.x = parseBoardUnits( "X coordinate" );
+            pt.y = parseBoardUnits( "Y coordinate" );
+            shape->SetCenter( pt );
+            NeedRIGHT();
+            NeedLEFT();
+            token = NextTok();
 
-        if( token != T_end )    // the end keyword actually gives the starting point of the arc
-            Expecting( T_end );
+            // ... and the end keyword gives the start point of the arc
+            if( token != T_end )
+                Expecting( T_end );
 
-        pt.x = parseBoardUnits( "X coordinate" );
-        pt.y = parseBoardUnits( "Y coordinate" );
-        shape->SetStart( pt );
-        NeedRIGHT();
+            pt.x = parseBoardUnits( "X coordinate" );
+            pt.y = parseBoardUnits( "Y coordinate" );
+            shape->SetStart( pt );
+            NeedRIGHT();
+        }
+        else
+        {
+            wxPoint start, mid, end;
+
+            if( token != T_start )
+                Expecting( T_start );
+
+            start.x = parseBoardUnits( "X coordinate" );
+            start.y = parseBoardUnits( "Y coordinate" );
+            NeedRIGHT();
+            NeedLEFT();
+            token = NextTok();
+
+            if( token != T_mid )
+                Expecting( T_mid );
+
+            mid.x = parseBoardUnits( "X coordinate" );
+            mid.y = parseBoardUnits( "Y coordinate" );
+            NeedRIGHT();
+            NeedLEFT();
+            token = NextTok();
+
+            if( token != T_end )
+                Expecting( T_end );
+
+            end.x = parseBoardUnits( "X coordinate" );
+            end.y = parseBoardUnits( "Y coordinate" );
+            NeedRIGHT();
+
+            shape->SetArcGeometry( start, mid, end );
+        }
+
         break;
 
     case T_gr_circle:
@@ -2582,12 +2617,20 @@ PCB_SHAPE* PCB_PARSER::parsePCB_SHAPE()
         switch( token )
         {
         case T_angle:
-            angle = parseAngle( "arc angle" );
+            if( m_requiredVersion <= LEGACY_ARC_FORMATTING )
+            {
+                angle = parseAngle( "arc angle" );
 
-            if( shape->GetShape() == SHAPE_T::ARC )
-                shape->SetArcAngleAndEnd( angle, true );
+                if( shape->GetShape() == SHAPE_T::ARC )
+                    shape->SetArcAngleAndEnd( angle, true );
 
-            NeedRIGHT();
+                NeedRIGHT();
+            }
+            else
+            {
+                Unexpected( T_angle );
+            }
+
             break;
 
         case T_layer:
@@ -2595,10 +2638,20 @@ PCB_SHAPE* PCB_PARSER::parsePCB_SHAPE()
             NeedRIGHT();
             break;
 
-        case T_width:
+        case T_width:       // legacy token
             stroke.SetWidth( parseBoardUnits( T_width ) );
             NeedRIGHT();
             break;
+
+        case T_stroke:
+        {
+            STROKE_PARAMS_PARSER strokeParser( reader, IU_PER_MM );
+            strokeParser.SyncLineReaderWith( *this );
+
+            strokeParser.ParseStroke( stroke );
+            SyncLineReaderWith( strokeParser );
+            break;
+        }
 
         case T_tstamp:
             NextTok();
@@ -3642,33 +3695,68 @@ FP_SHAPE* PCB_PARSER::parseFP_SHAPE()
 
         token = NextTok();
 
-        // the start keyword actually gives the arc center
-        // Allows also T_center for future change
-        if( token != T_start && token != T_center )
-            Expecting( T_start );
+        if( m_requiredVersion <= LEGACY_ARC_FORMATTING )
+        {
+            // In legacy files the start keyword actually gives the arc center...
+            if( token != T_start )
+                Expecting( T_start );
 
-        pt.x = parseBoardUnits( "X coordinate" );
-        pt.y = parseBoardUnits( "Y coordinate" );
-        shape->SetCenter0( pt );
-        NeedRIGHT();
-        NeedLEFT();
-        token = NextTok();
+            pt.x = parseBoardUnits( "X coordinate" );
+            pt.y = parseBoardUnits( "Y coordinate" );
+            shape->SetCenter0( pt );
+            NeedRIGHT();
+            NeedLEFT();
+            token = NextTok();
 
-        if( token != T_end )    // end keyword actually gives the starting point of the arc
-            Expecting( T_end );
+            // ... and the end keyword gives the start point of the arc
+            if( token != T_end )
+                Expecting( T_end );
 
-        pt.x = parseBoardUnits( "X coordinate" );
-        pt.y = parseBoardUnits( "Y coordinate" );
-        shape->SetStart0( pt );
-        NeedRIGHT();
-        NeedLEFT();
-        token = NextTok();
+            pt.x = parseBoardUnits( "X coordinate" );
+            pt.y = parseBoardUnits( "Y coordinate" );
+            shape->SetStart0( pt );
+            NeedRIGHT();
+            NeedLEFT();
+            token = NextTok();
 
-        if( token != T_angle )
-            Expecting( T_angle );
+            if( token != T_angle )
+                Expecting( T_angle );
 
-        shape->SetArcAngleAndEnd0( parseAngle( "segment angle" ), true );
-        NeedRIGHT();
+            shape->SetArcAngleAndEnd0( parseAngle( "segment angle" ), true );
+            NeedRIGHT();
+        }
+        else
+        {
+            wxPoint start, mid, end;
+
+            if( token != T_start )
+                Expecting( T_start );
+
+            start.x = parseBoardUnits( "X coordinate" );
+            start.y = parseBoardUnits( "Y coordinate" );
+            NeedRIGHT();
+            NeedLEFT();
+            token = NextTok();
+
+            if( token != T_mid )
+                Expecting( T_mid );
+
+            mid.x = parseBoardUnits( "X coordinate" );
+            mid.y = parseBoardUnits( "Y coordinate" );
+            NeedRIGHT();
+            NeedLEFT();
+            token = NextTok();
+
+            if( token != T_end )
+                Expecting( T_end );
+
+            end.x = parseBoardUnits( "X coordinate" );
+            end.y = parseBoardUnits( "Y coordinate" );
+            NeedRIGHT();
+
+            shape->SetArcGeometry( start, mid, end );
+        }
+
         break;
 
     case T_fp_circle:
@@ -3848,10 +3936,20 @@ FP_SHAPE* PCB_PARSER::parseFP_SHAPE()
             NeedRIGHT();
             break;
 
-        case T_width:
+        case T_width:       // legacy token
             stroke.SetWidth( parseBoardUnits( T_width ) );
             NeedRIGHT();
             break;
+
+        case T_stroke:
+        {
+            STROKE_PARAMS_PARSER strokeParser( reader, IU_PER_MM );
+            strokeParser.SyncLineReaderWith( *this );
+
+            strokeParser.ParseStroke( stroke );
+            SyncLineReaderWith( strokeParser );
+            break;
+        }
 
         case T_tstamp:
             NextTok();

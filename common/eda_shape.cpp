@@ -1417,3 +1417,44 @@ int EDA_SHAPE::Compare( const EDA_SHAPE* aOther ) const
 
     return 0;
 }
+
+
+static struct EDA_SHAPE_DESC
+{
+    EDA_SHAPE_DESC()
+    {
+        ENUM_MAP<SHAPE_T>::Instance()
+                    .Map( SHAPE_T::SEGMENT, _HKI( "Segment" ) )
+                    .Map( SHAPE_T::RECT,    _HKI( "Rectangle" ) )
+                    .Map( SHAPE_T::ARC,     _HKI( "Arc" ) )
+                    .Map( SHAPE_T::CIRCLE,  _HKI( "Circle" ) )
+                    .Map( SHAPE_T::POLY,    _HKI( "Polygon" ) )
+                    .Map( SHAPE_T::BEZIER,  _HKI( "Bezier" ) );
+        ENUM_MAP<PLOT_DASH_TYPE>::Instance()
+                    .Map( PLOT_DASH_TYPE::DEFAULT,    _HKI( "Default" ) )
+                    .Map( PLOT_DASH_TYPE::SOLID,      _HKI( "Solid" ) )
+                    .Map( PLOT_DASH_TYPE::DASH,       _HKI( "Dashed" ) )
+                    .Map( PLOT_DASH_TYPE::DOT,        _HKI( "Dotted" ) )
+                    .Map( PLOT_DASH_TYPE::DASHDOT,    _HKI( "Dash-Dot" ) )
+                    .Map( PLOT_DASH_TYPE::DASHDOTDOT, _HKI( "Dash-Dot-Dot" ) );
+
+        PROPERTY_MANAGER& propMgr = PROPERTY_MANAGER::Instance();
+        REGISTER_TYPE( EDA_SHAPE );
+        propMgr.AddProperty( new PROPERTY_ENUM<EDA_SHAPE, SHAPE_T>( _HKI( "Shape" ),
+                    &EDA_SHAPE::SetShape, &EDA_SHAPE::GetShape ) );
+        propMgr.AddProperty( new PROPERTY<EDA_SHAPE, int>( _HKI( "Start X" ),
+                    &EDA_SHAPE::SetStartX, &EDA_SHAPE::GetStartX ) );
+        propMgr.AddProperty( new PROPERTY<EDA_SHAPE, int>( _HKI( "Start Y" ),
+                    &EDA_SHAPE::SetStartY, &EDA_SHAPE::GetStartY ) );
+        propMgr.AddProperty( new PROPERTY<EDA_SHAPE, int>( _HKI( "End X" ),
+                    &EDA_SHAPE::SetEndX, &EDA_SHAPE::GetEndX ) );
+        propMgr.AddProperty( new PROPERTY<EDA_SHAPE, int>( _HKI( "End Y" ),
+                    &EDA_SHAPE::SetEndY, &EDA_SHAPE::GetEndY ) );
+        // TODO: m_arcCenter, m_bezierC1, m_bezierC2, m_poly
+        propMgr.AddProperty( new PROPERTY<EDA_SHAPE, int>( _HKI( "Line Width" ),
+                    &EDA_SHAPE::SetWidth, &EDA_SHAPE::GetWidth ) );
+    }
+} _EDA_SHAPE_DESC;
+
+ENUM_TO_WXANY( SHAPE_T )
+ENUM_TO_WXANY( PLOT_DASH_TYPE )

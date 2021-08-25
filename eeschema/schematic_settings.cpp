@@ -52,8 +52,8 @@ SCHEMATIC_SETTINGS::SCHEMATIC_SETTINGS( JSON_SETTINGS* aParent, const std::strin
         m_IntersheetRefsFormatShort( false ),
         m_IntersheetRefsPrefix( DEFAULT_IREF_PREFIX ),
         m_IntersheetRefsSuffix( DEFAULT_IREF_SUFFIX ),
-        m_DashedLineDashRatio( 5 ),
-        m_DashedLineGapRatio( 3 ),
+        m_DashedLineDashRatio( 5.0 ),
+        m_DashedLineGapRatio( 3.0 ),
         m_SpiceAdjustPassiveValues( false ),
         m_NgspiceSimulatorSettings( nullptr )
 {
@@ -98,10 +98,10 @@ SCHEMATIC_SETTINGS::SCHEMATIC_SETTINGS( JSON_SETTINGS* aParent, const std::strin
             &m_IntersheetRefsSuffix, defaultIntersheetsRefSuffix ) );
 
     m_params.emplace_back( new PARAM<double>( "drawing.dashed_lines_dash_length_ratio",
-            &m_DashedLineDashRatio, 5 ) );
+            &m_DashedLineDashRatio, 5.0 ) );
 
     m_params.emplace_back( new PARAM<double>( "drawing.dashed_lines_gap_length_ratio",
-            &m_DashedLineGapRatio, 3 ) );
+            &m_DashedLineGapRatio, 3.0 ) );
 
     m_params.emplace_back( new PARAM_SCALED<int>( "drawing.default_line_thickness",
             &m_DefaultLineWidth, Mils2iu( defaultLineThickness ), Mils2iu( 5 ), Mils2iu( 1000 ),

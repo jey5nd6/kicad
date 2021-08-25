@@ -158,7 +158,6 @@ size_t hash_fp_item( const EDA_ITEM* aItem, int aFlags )
                 {
                     hash_combine( ret, shape->GetCenter0().x );
                     hash_combine( ret, shape->GetCenter0().y );
-                    hash_combine( ret, shape->GetArcAngle() );
                 }
             }
             else
@@ -172,7 +171,6 @@ size_t hash_fp_item( const EDA_ITEM* aItem, int aFlags )
                 {
                     hash_combine( ret, shape->GetCenter().x );
                     hash_combine( ret, shape->GetCenter().y );
-                    hash_combine( ret, shape->GetArcAngle() );
                 }
             }
         }

@@ -76,6 +76,8 @@ class DIALOG_GRAPHIC_ITEM_PROPERTIES_BASE : public DIALOG_SHIM
 		wxStaticText* m_thicknessLabel;
 		wxTextCtrl* m_thicknessCtrl;
 		wxStaticText* m_thicknessUnits;
+		wxStaticText* m_lineStyleLabel;
+		wxBitmapComboBox* m_lineStyleCombo;
 		wxStaticText* m_LayerLabel;
 		PCB_LAYER_BOX_SELECTOR* m_LayerSelectionCtrl;
 		wxStaticLine* m_staticline1;
@@ -86,6 +88,7 @@ class DIALOG_GRAPHIC_ITEM_PROPERTIES_BASE : public DIALOG_SHIM
 		// Virtual event handlers, overide them in your derived class
 		virtual void OnClose( wxCloseEvent& event ) { event.Skip(); }
 		virtual void OnInitDlg( wxInitDialogEvent& event ) { event.Skip(); }
+		virtual void onFilledCheckbox( wxCommandEvent& event ) { event.Skip(); }
 
 
 	public:

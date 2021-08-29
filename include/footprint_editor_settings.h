@@ -56,6 +56,8 @@ public:
 
     bool m_PolarCoords;
 
+    int m_RotationAngle;
+
     bool m_Use45Limit;
 
     int m_LibWidth;

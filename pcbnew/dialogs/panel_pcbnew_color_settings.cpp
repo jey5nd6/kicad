@@ -20,20 +20,16 @@
 
 #include <regex>
 
+#include <pgm_base.h>
 #include <board.h>
-#include <gal/gal_display_options.h>
 #include <layer_ids.h>
 #include <panel_pcbnew_color_settings.h>
 #include <pcbnew_settings.h>
-#include <pcb_edit_frame.h>
 #include <settings/settings_manager.h>
 #include <footprint_preview_panel.h>
-#include <widgets/appearance_controls.h>
 #include <drawing_sheet/ds_proxy_view_item.h>
 #include <pcb_painter.h>
 #include <plugins/kicad/kicad_plugin.h>
-#include <wx/treebook.h>
-
 
 std::string g_previewBoard =
         "(kicad_pcb (version 20200724) (host pcbnew \"(5.99.0-2577-gd32bcd569-dirty)\")\n"
@@ -371,19 +367,17 @@ std::set<int> g_excludedLayers =
         };
 
 
-PANEL_PCBNEW_COLOR_SETTINGS::PANEL_PCBNEW_COLOR_SETTINGS( PCB_EDIT_FRAME* aFrame,
-                                                          wxWindow* aParent )
+PANEL_PCBNEW_COLOR_SETTINGS::PANEL_PCBNEW_COLOR_SETTINGS( wxWindow* aParent, BOARD* aBoard )
         : PANEL_COLOR_SETTINGS( aParent ),
-          m_frame( aFrame ),
           m_preview( nullptr ),
           m_page( nullptr ),
           m_titleBlock( nullptr )
 {
     m_colorNamespace = "board";
 
-    SETTINGS_MANAGER* mgr          = m_frame->GetSettingsManager();
-    PCBNEW_SETTINGS*  app_settings = mgr->GetAppSettings<PCBNEW_SETTINGS>();
-    COLOR_SETTINGS*   current      = mgr->GetColorSettings( app_settings->m_ColorTheme );
+    SETTINGS_MANAGER& mgr          = Pgm().GetSettingsManager();
+    PCBNEW_SETTINGS*  app_settings = mgr.GetAppSettings<PCBNEW_SETTINGS>();
+    COLOR_SETTINGS*   current      = mgr.GetColorSettings( app_settings->m_ColorTheme );
 
     // Saved theme doesn't exist?  Reset to default
     if( current->GetFilename() != app_settings->m_ColorTheme )
@@ -410,9 +404,9 @@ PANEL_PCBNEW_COLOR_SETTINGS::PANEL_PCBNEW_COLOR_SETTINGS( PCB_EDIT_FRAME* aFrame
 
     m_colorsMainSizer->Insert( 0, 10, 0, 0, wxEXPAND, 5 );
 
-    createSwatches();
+    createSwatches( aBoard );
 
-    m_preview = FOOTPRINT_PREVIEW_PANEL::New( &m_frame->Kiway(), this );
+    m_preview = FOOTPRINT_PREVIEW_PANEL::New( nullptr, this );
     m_preview->GetGAL()->SetAxesEnabled( false );
 
     m_colorsMainSizer->Add( 10, 0, 0, wxEXPAND, 5 );
@@ -435,8 +429,8 @@ PANEL_PCBNEW_COLOR_SETTINGS::~PANEL_PCBNEW_COLOR_SETTINGS()
 
 bool PANEL_PCBNEW_COLOR_SETTINGS::TransferDataFromWindow()
 {
-    SETTINGS_MANAGER* settingsMgr = m_frame->GetSettingsManager();
-    PCBNEW_SETTINGS* app_settings = settingsMgr->GetAppSettings<PCBNEW_SETTINGS>();
+    SETTINGS_MANAGER& mgr = Pgm().GetSettingsManager();
+    PCBNEW_SETTINGS*  app_settings = mgr.GetAppSettings<PCBNEW_SETTINGS>();
     app_settings->m_ColorTheme = m_currentSettings->GetFilename();
 
     return true;
@@ -450,7 +444,7 @@ bool PANEL_PCBNEW_COLOR_SETTINGS::TransferDataToWindow()
 }
 
 
-void PANEL_PCBNEW_COLOR_SETTINGS::createSwatches()
+void PANEL_PCBNEW_COLOR_SETTINGS::createSwatches( BOARD* aBoard )
 {
     std::sort( m_validLayers.begin(), m_validLayers.end(),
                []( int a, int b )
@@ -458,18 +452,16 @@ void PANEL_PCBNEW_COLOR_SETTINGS::createSwatches()
                    return LayerName( a ) < LayerName( b );
                } );
 
-    // Don't sort board layers by name
+    // Don't sort aBoard layers by name
     for( int i = PCBNEW_LAYER_ID_START; i <= User_9; ++i )
         m_validLayers.insert( m_validLayers.begin() + i, i );
-
-    BOARD* board = m_frame->GetBoard();
 
     for( int layer : m_validLayers )
     {
         wxString name = LayerName( layer );
 
-        if( board && layer >= PCBNEW_LAYER_ID_START && layer < PCB_LAYER_ID_COUNT )
-            name = board->GetLayerName( static_cast<PCB_LAYER_ID>( layer ) );
+        if( aBoard && layer >= PCBNEW_LAYER_ID_START && layer < PCB_LAYER_ID_COUNT )
+            name = aBoard->GetLayerName( static_cast<PCB_LAYER_ID>( layer ) );
 
         createSwatch( layer, name );
     }

@@ -34,6 +34,7 @@
 #include <id.h>
 #include <kiplatform/app.h>
 #include <settings/settings_manager.h>
+#include <tool/action_manager.h>
 #include <logging.h>
 
 #include <wx/dynlib.h>
@@ -479,6 +480,13 @@ void KIWAY::ExpressMail( FRAME_T aDestination, MAIL_T aCommand, std::string& aPa
     KIWAY_EXPRESS   mail( aDestination, aCommand, aPayload, aSource );
 
     ProcessEvent( mail );
+}
+
+
+void KIWAY::GetActions( std::vector<TOOL_ACTION*>& aActions ) const
+{
+    for( TOOL_ACTION* action : ACTION_MANAGER::GetActionList() )
+        aActions.push_back( action );
 }
 
 

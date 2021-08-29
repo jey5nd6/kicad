@@ -106,12 +106,6 @@ PANEL_HOTKEYS_EDITOR::PANEL_HOTKEYS_EDITOR( EDA_BASE_FRAME* aFrame, wxWindow* aW
 }
 
 
-void PANEL_HOTKEYS_EDITOR::AddHotKeys( TOOL_MANAGER* aToolMgr )
-{
-    m_toolManagers.push_back( aToolMgr );
-}
-
-
 void PANEL_HOTKEYS_EDITOR::ResetPanel()
 {
     m_hotkeyListCtrl->ResetAllHotkeys( true );
@@ -165,7 +159,7 @@ void PANEL_HOTKEYS_EDITOR::installButtons( wxSizer* aSizer )
 
 bool PANEL_HOTKEYS_EDITOR::TransferDataToWindow()
 {
-    m_hotkeyStore.Init( m_toolManagers, m_readOnly );
+    m_hotkeyStore.Init( m_actions, m_readOnly );
     return m_hotkeyListCtrl->TransferDataToControl();
 }
 
@@ -178,9 +172,7 @@ bool PANEL_HOTKEYS_EDITOR::TransferDataFromWindow()
     if( m_readOnly )
         return true;
 
-    // save the hotkeys
-    for( TOOL_MANAGER* toolMgr : m_toolManagers )
-        WriteHotKeyConfig( toolMgr->GetActions() );
+    WriteHotKeyConfig( m_actions );
 
     return true;
 }

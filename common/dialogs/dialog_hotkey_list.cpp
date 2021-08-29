@@ -22,15 +22,15 @@
  */
 
 #include <dialogs/dialog_hotkey_list.h>
-
+#include <kiface_i.h>
+#include <kiface_ids.h>
 #include <panel_hotkeys_editor.h>
 #include <widgets/ui_common.h>
 
 #include <wx/sizer.h>
 #include <wx/button.h>
 
-
-DIALOG_LIST_HOTKEYS::DIALOG_LIST_HOTKEYS( EDA_BASE_FRAME* aParent, TOOL_MANAGER* aToolMgr ):
+DIALOG_LIST_HOTKEYS::DIALOG_LIST_HOTKEYS( EDA_BASE_FRAME* aParent ):
     DIALOG_SHIM( aParent, wxID_ANY, _( "Hotkey List" ) )
 {
     const auto margin = KIUI::GetStdMargin();
@@ -38,7 +38,8 @@ DIALOG_LIST_HOTKEYS::DIALOG_LIST_HOTKEYS( EDA_BASE_FRAME* aParent, TOOL_MANAGER*
     auto main_sizer = new wxBoxSizer( wxVERTICAL );
 
     m_hk_list = new PANEL_HOTKEYS_EDITOR( aParent, this, true );
-    m_hk_list->AddHotKeys( aToolMgr );
+
+    Kiface().GetActions( m_hk_list->ActionsList() );
 
     main_sizer->Add( m_hk_list, 1, wxTOP | wxLEFT | wxRIGHT | wxEXPAND, margin );
 

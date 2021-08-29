@@ -53,10 +53,8 @@ std::set<int> g_excludedLayers =
         };
 
 
-PANEL_EESCHEMA_COLOR_SETTINGS::PANEL_EESCHEMA_COLOR_SETTINGS( SCH_BASE_FRAME* aFrame,
-                                                              wxWindow* aParent ) :
+PANEL_EESCHEMA_COLOR_SETTINGS::PANEL_EESCHEMA_COLOR_SETTINGS( wxWindow* aParent ) :
         PANEL_COLOR_SETTINGS( aParent ),
-        m_frame( aFrame ),
         m_preview( nullptr ),
         m_page( nullptr ),
         m_titleBlock( nullptr ),
@@ -129,8 +127,6 @@ bool PANEL_EESCHEMA_COLOR_SETTINGS::TransferDataFromWindow()
 
     if( !saveCurrentTheme( true ) )
         return false;
-
-    m_frame->GetCanvas()->GetView()->GetPainter()->GetSettings()->LoadColors( m_currentSettings );
 
     SETTINGS_MANAGER& settingsMgr = Pgm().GetSettingsManager();
     EESCHEMA_SETTINGS* app_settings = settingsMgr.GetAppSettings<EESCHEMA_SETTINGS>();

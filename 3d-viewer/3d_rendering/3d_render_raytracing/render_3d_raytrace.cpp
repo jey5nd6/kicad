@@ -297,7 +297,7 @@ void RENDER_3D_RAYTRACE::render( GLubyte* ptrPBO, REPORTER* aStatusReporter )
         if( m_cameraLight )
             m_cameraLight->SetDirection( -m_camera.GetDir() );
 
-        if( m_boardAdapter.GetRenderEngine() == RENDER_ENGINE::OPENGL_LEGACY )
+        if( m_boardAdapter.m_Cfg->m_Render.engine == RENDER_ENGINE::OPENGL_LEGACY )
         {
             // Set all pixels of PBO transparent (Alpha to 0)
             // This way it will draw the full buffer but only shows the updated (
@@ -403,7 +403,7 @@ void RENDER_3D_RAYTRACE::renderTracing( GLubyte* ptrPBO, REPORTER* aStatusReport
     // or mark it as finished
     if( m_blockRenderProgressCount >= m_blockPositions.size() )
     {
-        if( m_boardAdapter.GetFlag( FL_RENDER_RAYTRACING_POST_PROCESSING ) )
+        if( m_boardAdapter.m_Cfg->m_Render.raytrace_post_processing )
             m_renderState = RT_RENDER_STATE_POST_PROCESS_SHADE;
         else
             m_renderState = RT_RENDER_STATE_FINISH;
@@ -508,7 +508,7 @@ void RENDER_3D_RAYTRACE::renderAntiAliasPackets( const SFVEC3F* aBgColorY,
                                                  const HITINFO_PACKET* aHitPck_AA_X1Y1,
                                                  const RAY* aRayPck, SFVEC3F* aOutHitColor )
 {
-    const bool is_testShadow =  m_boardAdapter.GetFlag( FL_RENDER_RAYTRACING_SHADOWS );
+    const bool is_testShadow =  m_boardAdapter.m_Cfg->m_Render.raytrace_shadows;
 
     for( unsigned int y = 0, i = 0; y < RAYPACKET_DIM; ++y )
     {
@@ -656,7 +656,7 @@ void RENDER_3D_RAYTRACE::renderBlockTracing( GLubyte* ptrPBO, signed int iBlock 
     if( !m_accelerator->Intersect( blockPacket, hitPacket_X0Y0 ) )
     {
         // If block is empty then set shades and continue
-        if( m_boardAdapter.GetFlag( FL_RENDER_RAYTRACING_POST_PROCESSING ) )
+        if( m_boardAdapter.m_Cfg->m_Render.raytrace_post_processing )
         {
             for( unsigned int y = 0; y < RAYPACKET_DIM; ++y )
             {
@@ -674,10 +674,9 @@ void RENDER_3D_RAYTRACE::renderBlockTracing( GLubyte* ptrPBO, signed int iBlock 
         }
 
         // This will set the output color to be displayed
-        // If post processing is enabled, it will not reflect the final result
-        // (as the final color will be computed on post processing)
-        // but it is used for report progress
-        const bool isFinalColor = !m_boardAdapter.GetFlag( FL_RENDER_RAYTRACING_POST_PROCESSING );
+        // If post processing is enabled, it will not reflect the final result (as the final
+        // color will be computed on post processing) but it is used for report progress
+        const bool isFinalColor = !m_boardAdapter.m_Cfg->m_Render.raytrace_post_processing;
 
         for( unsigned int y = 0; y < RAYPACKET_DIM; ++y )
         {
@@ -702,9 +701,9 @@ void RENDER_3D_RAYTRACE::renderBlockTracing( GLubyte* ptrPBO, signed int iBlock 
 
     // Shade original (0, 0) hits ("paint" the intersected objects)
     renderRayPackets( bgColor, blockPacket.m_ray, hitPacket_X0Y0,
-                      m_boardAdapter.GetFlag( FL_RENDER_RAYTRACING_SHADOWS ), hitColor_X0Y0 );
+                      m_boardAdapter.m_Cfg->m_Render.raytrace_shadows, hitColor_X0Y0 );
 
-    if( m_boardAdapter.GetFlag( FL_RENDER_RAYTRACING_ANTI_ALIASING ) )
+    if( m_boardAdapter.m_Cfg->m_Render.raytrace_anti_aliasing )
     {
         SFVEC3F hitColor_AA_X1Y1[RAYPACKET_RAYS_PER_PACKET];
 
@@ -723,16 +722,13 @@ void RENDER_3D_RAYTRACE::renderBlockTracing( GLubyte* ptrPBO, signed int iBlock 
                 const SFVEC3F& outColor = bgColor[y];
 
                 for( unsigned int x = 0; x < RAYPACKET_DIM; ++x, ++i )
-                {
                     hitColor_AA_X1Y1[i] = outColor;
-                }
             }
         }
         else
         {
             renderRayPackets( bgColor, blockPacket_AA_X1Y1.m_ray, hitPacket_AA_X1Y1,
-                              m_boardAdapter.GetFlag( FL_RENDER_RAYTRACING_SHADOWS ),
-                              hitColor_AA_X1Y1 );
+                              m_boardAdapter.m_Cfg->m_Render.raytrace_shadows, hitColor_AA_X1Y1 );
         }
 
         SFVEC3F hitColor_AA_X1Y0[RAYPACKET_RAYS_PER_PACKET];
@@ -741,8 +737,7 @@ void RENDER_3D_RAYTRACE::renderBlockTracing( GLubyte* ptrPBO, signed int iBlock 
 
         for( unsigned int i = 0; i < RAYPACKET_RAYS_PER_PACKET; ++i )
         {
-            const SFVEC3F color_average = ( hitColor_X0Y0[i] +
-                                            hitColor_AA_X1Y1[i] ) * SFVEC3F( 0.5f );
+            SFVEC3F color_average = ( hitColor_X0Y0[i] + hitColor_AA_X1Y1[i] ) * SFVEC3F( 0.5f );
 
             hitColor_AA_X1Y0[i] = color_average;
             hitColor_AA_X0Y1[i] = color_average;
@@ -788,7 +783,7 @@ void RENDER_3D_RAYTRACE::renderBlockTracing( GLubyte* ptrPBO, signed int iBlock 
 
     const uint32_t ptrInc = ( m_realBufferSize.x - RAYPACKET_DIM ) * 4;
 
-    if( m_boardAdapter.GetFlag( FL_RENDER_RAYTRACING_POST_PROCESSING ) )
+    if( m_boardAdapter.m_Cfg->m_Render.raytrace_post_processing )
     {
         SFVEC2I bPos;
         bPos.y = blockPos.y;
@@ -802,6 +797,7 @@ void RENDER_3D_RAYTRACE::renderBlockTracing( GLubyte* ptrPBO, signed int iBlock 
                 const SFVEC3F& hColor = hitColor_X0Y0[i];
 
                 if( hitPacket_X0Y0[i].m_hitresult == true )
+                {
                     m_postShaderSsao.SetPixelData( bPos.x, bPos.y,
                                                    hitPacket_X0Y0[i].m_HitInfo.m_HitNormal,
                                                    hColor,
@@ -809,9 +805,12 @@ void RENDER_3D_RAYTRACE::renderBlockTracing( GLubyte* ptrPBO, signed int iBlock 
                                                            hitPacket_X0Y0[i].m_HitInfo.m_tHit ),
                                                    hitPacket_X0Y0[i].m_HitInfo.m_tHit,
                                                    hitPacket_X0Y0[i].m_HitInfo.m_ShadowFactor );
+                }
                 else
+                {
                     m_postShaderSsao.SetPixelData( bPos.x, bPos.y, SFVEC3F( 0.0f ), hColor,
                                                    SFVEC3F( 0.0f ), 0, 1.0f );
+                }
 
                 renderFinalColor( ptr, hColor, false );
 
@@ -843,13 +842,12 @@ void RENDER_3D_RAYTRACE::postProcessShading( GLubyte* ptrPBO, REPORTER* aStatusR
 {
     (void)ptrPBO; // unused
 
-    if( m_boardAdapter.GetFlag( FL_RENDER_RAYTRACING_POST_PROCESSING ) )
+    if( m_boardAdapter.m_Cfg->m_Render.raytrace_post_processing )
     {
         if( aStatusReporter )
             aStatusReporter->Report( _( "Rendering: Post processing shader" ) );
 
-        m_postShaderSsao.SetShadowsEnabled(
-                m_boardAdapter.GetFlag( FL_RENDER_RAYTRACING_SHADOWS ) );
+        m_postShaderSsao.SetShadowsEnabled( m_boardAdapter.m_Cfg->m_Render.raytrace_shadows );
 
         std::atomic<size_t> nextBlock( 0 );
         std::atomic<size_t> threadsFinished( 0 );
@@ -898,7 +896,7 @@ void RENDER_3D_RAYTRACE::postProcessBlurFinish( GLubyte* ptrPBO, REPORTER* aStat
 {
     (void) aStatusReporter; //unused
 
-    if( m_boardAdapter.GetFlag( FL_RENDER_RAYTRACING_POST_PROCESSING ) )
+    if( m_boardAdapter.m_Cfg->m_Render.raytrace_post_processing )
     {
         // Now blurs the shader result and compute the final color
         std::atomic<size_t> nextBlock( 0 );
@@ -1568,8 +1566,7 @@ SFVEC3F RENDER_3D_RAYTRACE::shadeHit( const SFVEC3F& aBgColor, const RAY& aRay, 
     const SFVEC3F diffuseColorObj = aHitInfo.pHitObject->GetDiffuseColor( aHitInfo );
 
 #if USE_EXPERIMENTAL_SOFT_SHADOWS
-    const bool is_aa_enabled = m_boardAdapter.GetFlag( FL_RENDER_RAYTRACING_ANTI_ALIASING ) &&
-                               (!m_isPreview);
+    bool is_aa_enabled = m_boardAdapter.m_Cfg->m_Render.raytrace_anti_aliasing && !m_isPreview;
 #endif
 
     float shadow_att_factor_sum = 0.0f;
@@ -1615,9 +1612,8 @@ SFVEC3F RENDER_3D_RAYTRACE::shadeHit( const SFVEC3F& aBgColor, const RAY& aRay, 
                 }
                 else  // Experimental softshadow calculation
                 {
-
                     const unsigned int shadow_number_of_samples =
-                            m_boardAdapter.m_RtShadowSampleCount;
+                            m_boardAdapter.m_Cfg->m_Render.raytrace_nrsamples_shadows;
                     const float shadow_inc_factor = 1.0f / (float) ( shadow_number_of_samples );
 
                     for( unsigned int i = 0; i < shadow_number_of_samples; ++i )
@@ -1633,7 +1629,7 @@ SFVEC3F RENDER_3D_RAYTRACE::shadeHit( const SFVEC3F& aBgColor, const RAY& aRay, 
                             const SFVEC3F unifVector = UniformRandomHemisphereDirection();
                             const SFVEC3F disturbed_vector_to_light =
                                     glm::normalize( vectorToLight + unifVector *
-                                                    m_boardAdapter.m_RtSpreadShadows );
+                                                    m_boardAdapter.m_Cfg->m_Render.raytrace_spread_shadows );
 
                             rayToLight.Init( hitPoint, disturbed_vector_to_light );
                         }
@@ -1678,7 +1674,7 @@ SFVEC3F RENDER_3D_RAYTRACE::shadeHit( const SFVEC3F& aBgColor, const RAY& aRay, 
     {
         // Reflections
         if( ( objMaterial->GetReflection() > 0.0f )
-          && m_boardAdapter.GetFlag( FL_RENDER_RAYTRACING_REFLECTIONS )
+          && m_boardAdapter.m_Cfg->m_Render.raytrace_reflections
           && ( aRecursiveLevel < objMaterial->GetReflectionRecursionCount() ) )
         {
             const unsigned int reflection_number_of_samples =
@@ -1703,7 +1699,7 @@ SFVEC3F RENDER_3D_RAYTRACE::shadeHit( const SFVEC3F& aBgColor, const RAY& aRay, 
                     const SFVEC3F random_reflectVector =
                             glm::normalize( reflectVector +
                                             UniformRandomHemisphereDirection() *
-                                            m_boardAdapter.m_RtSpreadReflections );
+                                            m_boardAdapter.m_Cfg->m_Render.raytrace_spread_reflections );
 
                     reflectedRay.Init( hitPoint, random_reflectVector );
                 }
@@ -1729,7 +1725,7 @@ SFVEC3F RENDER_3D_RAYTRACE::shadeHit( const SFVEC3F& aBgColor, const RAY& aRay, 
         // Refraction
         const float objTransparency = aHitInfo.pHitObject->GetModelTransparency();
 
-        if( ( objTransparency > 0.0f ) && m_boardAdapter.GetFlag( FL_RENDER_RAYTRACING_REFRACTIONS )
+        if( ( objTransparency > 0.0f ) && m_boardAdapter.m_Cfg->m_Render.raytrace_refractions
           && ( aRecursiveLevel < objMaterial->GetRefractionRecursionCount() ) )
         {
             const float airIndex = 1.000293f;
@@ -1768,7 +1764,7 @@ SFVEC3F RENDER_3D_RAYTRACE::shadeHit( const SFVEC3F& aBgColor, const RAY& aRay, 
                         const SFVEC3F randomizeRefractedVector =
                                 glm::normalize( refractedVector +
                                                 UniformRandomHemisphereDirection() *
-                                                m_boardAdapter.m_RtSpreadRefractions );
+                                                m_boardAdapter.m_Cfg->m_Render.raytrace_spread_refractions );
 
                         refractedRay.Init( startPoint, randomizeRefractedVector );
                     }

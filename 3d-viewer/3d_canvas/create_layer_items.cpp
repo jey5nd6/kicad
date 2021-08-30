@@ -2,7 +2,7 @@
  * This program source code file is part of KiCad, a free EDA CAD application.
  *
  * Copyright (C) 2015-2016 Mario Luzeiro <mrluzeiro@ua.pt>
- * Copyright (C) 1992-2020 KiCad Developers, see AUTHORS.txt for contributors.
+ * Copyright (C) 1992-2021 KiCad Developers, see AUTHORS.txt for contributors.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -32,11 +32,7 @@
  */
 
 #include "board_adapter.h"
-#include "../3d_rendering/3d_render_raytracing/shapes2D/ring_2d.h"
 #include "../3d_rendering/3d_render_raytracing/shapes2D/filled_circle_2d.h"
-#include "../3d_rendering/3d_render_raytracing/shapes3D/cylinder_3d.h"
-
-#include <board.h>
 #include <board_design_settings.h>
 #include <footprint.h>
 #include <pad.h>
@@ -205,15 +201,15 @@ void BOARD_ADAPTER::createLayers( REPORTER* aStatusReporter )
         BVH_CONTAINER_2D *layerContainer = new BVH_CONTAINER_2D;
         m_layerMap[curr_layer_id] = layerContainer;
 
-        if( GetFlag( FL_RENDER_OPENGL_COPPER_THICKNESS )
-          && ( m_renderEngine == RENDER_ENGINE::OPENGL_LEGACY ) )
+        if( m_Cfg->m_Render.opengl_copper_thickness
+                && m_Cfg->m_Render.engine == RENDER_ENGINE::OPENGL_LEGACY )
         {
             SHAPE_POLY_SET* layerPoly    = new SHAPE_POLY_SET;
             m_layers_poly[curr_layer_id] = layerPoly;
         }
     }
 
-    if( GetFlag( FL_RENDER_PLATED_PADS_AS_PLATED ) && GetFlag( FL_USE_REALISTIC_MODE ) )
+    if( m_Cfg->m_Render.renderPlatedPadsAsPlated && m_Cfg->m_Render.realistic )
     {
         m_frontPlatedPadPolys = new SHAPE_POLY_SET;
         m_backPlatedPadPolys = new SHAPE_POLY_SET;
@@ -317,16 +313,15 @@ void BOARD_ADAPTER::createLayers( REPORTER* aStatusReporter )
                                                                    hole_inner_radius + thickness,
                                                                    *track ) );
 
-                    if( GetFlag( FL_CLIP_SILK_ON_VIA_ANNULUS ) &&
-                        GetFlag( FL_USE_REALISTIC_MODE ) )
+                    if( m_Cfg->m_Render.clip_silk_on_via_annulus && m_Cfg->m_Render.realistic )
                     {
                         m_throughHoleAnnularRings.Add( new FILLED_CIRCLE_2D( via_center,
-                                                                              ring_radius,
-                                                                              *track ) );
+                                                                             ring_radius,
+                                                                             *track ) );
                     }
 
                     m_throughHoleIds.Add( new FILLED_CIRCLE_2D( via_center, hole_inner_radius,
-                                                                     *track ) );
+                                                                *track ) );
                 }
             }
         }
@@ -407,11 +402,11 @@ void BOARD_ADAPTER::createLayers( REPORTER* aStatusReporter )
                     TransformCircleToPolygon( m_throughHoleViaOdPolys, via->GetStart(),
                                               hole_outer_radius, ARC_HIGH_DEF, ERROR_INSIDE );
 
-                    if( GetFlag( FL_CLIP_SILK_ON_VIA_ANNULUS ) && GetFlag( FL_USE_REALISTIC_MODE ) )
+                    if( m_Cfg->m_Render.clip_silk_on_via_annulus && m_Cfg->m_Render.realistic )
                     {
-                        TransformCircleToPolygon( m_throughHoleAnnularRingPolys,
-                                                  via->GetStart(), hole_outer_ring_radius,
-                                                  ARC_HIGH_DEF, ERROR_INSIDE );
+                        TransformCircleToPolygon( m_throughHoleAnnularRingPolys, via->GetStart(),
+                                                  hole_outer_ring_radius, ARC_HIGH_DEF,
+                                                  ERROR_INSIDE );
                     }
                 }
             }
@@ -419,8 +414,8 @@ void BOARD_ADAPTER::createLayers( REPORTER* aStatusReporter )
     }
 
     // Creates vertical outline contours of the tracks and add it to the poly of the layer
-    if( GetFlag( FL_RENDER_OPENGL_COPPER_THICKNESS )
-      && ( m_renderEngine == RENDER_ENGINE::OPENGL_LEGACY ) )
+    if( m_Cfg->m_Render.opengl_copper_thickness
+            && m_Cfg->m_Render.engine == RENDER_ENGINE::OPENGL_LEGACY )
     {
         for( PCB_LAYER_ID curr_layer_id : layer_id )
         {
@@ -471,10 +466,8 @@ void BOARD_ADAPTER::createLayers( REPORTER* aStatusReporter )
 
             m_throughHoleOds.Add( createPadWithDrill( pad, inflate ) );
 
-            if( GetFlag( FL_CLIP_SILK_ON_VIA_ANNULUS ) && GetFlag( FL_USE_REALISTIC_MODE ) )
-            {
+            if( m_Cfg->m_Render.clip_silk_on_via_annulus && m_Cfg->m_Render.realistic )
                 m_throughHoleAnnularRings.Add( createPadWithDrill( pad, inflate ) );
-            }
 
             m_throughHoleIds.Add( createPadWithDrill( pad, 0 ) );
         }
@@ -498,7 +491,7 @@ void BOARD_ADAPTER::createLayers( REPORTER* aStatusReporter )
 
             if( pad->GetAttribute () != PAD_ATTRIB::NPTH )
             {
-                if( GetFlag( FL_CLIP_SILK_ON_VIA_ANNULUS ) && GetFlag( FL_USE_REALISTIC_MODE ) )
+                if( m_Cfg->m_Render.clip_silk_on_via_annulus && m_Cfg->m_Render.realistic )
                 {
                     pad->TransformHoleWithClearanceToPolygon( m_throughHoleAnnularRingPolys,
                                                               inflate, ARC_HIGH_DEF, ERROR_INSIDE );
@@ -510,7 +503,7 @@ void BOARD_ADAPTER::createLayers( REPORTER* aStatusReporter )
             else
             {
                 // If not plated, no copper.
-                if( GetFlag( FL_CLIP_SILK_ON_VIA_ANNULUS ) && GetFlag( FL_USE_REALISTIC_MODE ) )
+                if( m_Cfg->m_Render.clip_silk_on_via_annulus && m_Cfg->m_Render.realistic )
                 {
                     pad->TransformHoleWithClearanceToPolygon( m_throughHoleAnnularRingPolys, 0,
                                                               ARC_HIGH_DEF, ERROR_INSIDE );
@@ -522,8 +515,8 @@ void BOARD_ADAPTER::createLayers( REPORTER* aStatusReporter )
         }
     }
 
-    const bool renderPlatedPadsAsPlated = GetFlag( FL_RENDER_PLATED_PADS_AS_PLATED ) &&
-                                          GetFlag( FL_USE_REALISTIC_MODE );
+    const bool renderPlatedPadsAsPlated = m_Cfg->m_Render.renderPlatedPadsAsPlated
+                                                && m_Cfg->m_Render.realistic;
 
     // Add footprints PADs objects to containers
     for( PCB_LAYER_ID curr_layer_id : layer_id )
@@ -535,10 +528,10 @@ void BOARD_ADAPTER::createLayers( REPORTER* aStatusReporter )
         // ADD PADS
         for( FOOTPRINT* footprint : m_board->Footprints() )
         {
-            // Note: NPTH pads are not drawn on copper layers when the pad
-            // has same shape as its hole
-            addPadsWithClearance( footprint, layerContainer, curr_layer_id, 0,
-                                  true, renderPlatedPadsAsPlated, false );
+            // Note: NPTH pads are not drawn on copper layers when the pad has the same shape
+            // as its hole
+            addPadsWithClearance( footprint, layerContainer, curr_layer_id, 0, true,
+                                  renderPlatedPadsAsPlated, false );
 
             // Micro-wave footprints may have items on copper layers
             addFootprintShapesWithClearance( footprint, layerContainer, curr_layer_id, 0 );
@@ -560,8 +553,8 @@ void BOARD_ADAPTER::createLayers( REPORTER* aStatusReporter )
     }
 
     // Add footprints PADs poly contours (vertical outlines)
-    if( GetFlag( FL_RENDER_OPENGL_COPPER_THICKNESS )
-      && ( m_renderEngine == RENDER_ENGINE::OPENGL_LEGACY ) )
+    if( m_Cfg->m_Render.opengl_copper_thickness
+            && m_Cfg->m_Render.engine == RENDER_ENGINE::OPENGL_LEGACY )
     {
         for( PCB_LAYER_ID curr_layer_id : layer_id )
         {
@@ -642,8 +635,8 @@ void BOARD_ADAPTER::createLayers( REPORTER* aStatusReporter )
     }
 
     // Add graphic item on copper layers to poly contours (vertical outlines)
-    if( GetFlag( FL_RENDER_OPENGL_COPPER_THICKNESS )
-      && ( m_renderEngine == RENDER_ENGINE::OPENGL_LEGACY ) )
+    if( m_Cfg->m_Render.opengl_copper_thickness
+            && m_Cfg->m_Render.engine == RENDER_ENGINE::OPENGL_LEGACY )
     {
         for( PCB_LAYER_ID cur_layer_id : layer_id )
         {
@@ -682,7 +675,7 @@ void BOARD_ADAPTER::createLayers( REPORTER* aStatusReporter )
         }
     }
 
-    if( GetFlag( FL_ZONE ) )
+    if( m_Cfg->m_Render.show_zones )
     {
         if( aStatusReporter )
             aStatusReporter->Report( _( "Create zones" ) );
@@ -729,9 +722,9 @@ void BOARD_ADAPTER::createLayers( REPORTER* aStatusReporter )
                         addSolidAreasShapes( zone, layerContainer->second, layer );
                     }
 
-                    if( GetFlag( FL_RENDER_OPENGL_COPPER_THICKNESS )
-                      && ( m_renderEngine == RENDER_ENGINE::OPENGL_LEGACY )
-                      && layerPolyContainer != m_layers_poly.end() )
+                    if( m_Cfg->m_Render.opengl_copper_thickness
+                          && m_Cfg->m_Render.engine == RENDER_ENGINE::OPENGL_LEGACY
+                          && layerPolyContainer != m_layers_poly.end() )
                     {
                         auto mut_it = layer_lock.find( layer );
 
@@ -756,10 +749,10 @@ void BOARD_ADAPTER::createLayers( REPORTER* aStatusReporter )
     if( aStatusReporter )
         aStatusReporter->Report( _( "Simplifying copper layers polygons" ) );
 
-    if( GetFlag( FL_RENDER_OPENGL_COPPER_THICKNESS )
-      && ( m_renderEngine == RENDER_ENGINE::OPENGL_LEGACY ) )
+    if( m_Cfg->m_Render.opengl_copper_thickness
+            && m_Cfg->m_Render.engine == RENDER_ENGINE::OPENGL_LEGACY )
     {
-        if( GetFlag( FL_RENDER_PLATED_PADS_AS_PLATED ) && GetFlag( FL_USE_REALISTIC_MODE ) )
+        if( renderPlatedPadsAsPlated )
         {
             if( m_frontPlatedPadPolys && ( m_layers_poly.find( F_Cu ) != m_layers_poly.end() ) )
             {
@@ -787,7 +780,7 @@ void BOARD_ADAPTER::createLayers( REPORTER* aStatusReporter )
         std::vector< PCB_LAYER_ID > &selected_layer_id = layer_id;
         std::vector< PCB_LAYER_ID > layer_id_without_F_and_B;
 
-        if( GetFlag( FL_RENDER_PLATED_PADS_AS_PLATED ) && GetFlag( FL_USE_REALISTIC_MODE ) )
+        if( renderPlatedPadsAsPlated )
         {
             layer_id_without_F_and_B.clear();
             layer_id_without_F_and_B.reserve( layer_id.size() );
@@ -804,9 +797,10 @@ void BOARD_ADAPTER::createLayers( REPORTER* aStatusReporter )
         if( selected_layer_id.size() > 0 )
         {
             if( aStatusReporter )
-                aStatusReporter->Report( wxString::Format(
-                                         _( "Simplifying %d copper layers" ),
-                                         (int)selected_layer_id.size() ) );
+            {
+                aStatusReporter->Report( wxString::Format( _( "Simplifying %d copper layers" ),
+                                                           (int) selected_layer_id.size() ) );
+            }
 
             std::atomic<size_t> nextItem( 0 );
             std::atomic<size_t> threadsFinished( 0 );
@@ -1030,7 +1024,7 @@ void BOARD_ADAPTER::createLayers( REPORTER* aStatusReporter )
 
 
         // Draw non copper zones
-        if( GetFlag( FL_ZONE ) )
+        if( m_Cfg->m_Render.show_zones )
         {
             for( ZONE* zone : m_board->Zones() )
             {

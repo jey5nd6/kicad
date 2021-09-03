@@ -611,6 +611,11 @@ public:
     static const wxChar* StringLibNameInvalidChars( bool aUserReadable );
 
     /**
+     * Return true if a board footprint differs from the library version.
+     */
+    bool FootprintNeedsUpdate( const FOOTPRINT* aLibFootprint );
+
+    /**
      * Take ownership of caller's heap allocated aInitialComments block.
      *
      * The comments are single line strings already containing the s-expression comments with

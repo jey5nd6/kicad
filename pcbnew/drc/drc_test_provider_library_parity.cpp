@@ -71,15 +71,16 @@ public:
 };
 
 
-#define TEST( a, b ) { if( a != b ) return false; }
-#define TEST_PADS( a, b ) { if( !padsSame( a, b ) ) return false; }
-#define TEST_SHAPES( a, b ) { if( !shapesSame( a, b ) ) return false; }
-#define TEST_PRIMITIVES( a, b ) { if( !primitivesSame( a, b ) ) return false; }
-#define TEST_ZONES( a, b ) { if( !zonesSame( a, b ) ) return false; }
-#define TEST_MODELS( a, b ) { if( !modelsSame( a, b ) ) return false; }
+#define TEST( a, b ) { if( a != b ) return true; }
+#define TEST_PADS( a, b ) { if( padsNeedUpdate( a, b ) ) return true; }
+#define TEST_SHAPES( a, b ) { if( shapesNeedUpdate( a, b ) ) return true; }
+#define TEST_PRIMITIVES( a, b ) { if( primitivesNeedUpdate( a, b ) ) return true; }
+#define TEST_ZONES( a, b ) { if( zonesNeedUpdate( a, b ) ) return true; }
+#define TEST_MODELS( a, b ) { if( modelsNeedUpdate( a, b ) ) return true; }
 
 
-bool primitivesSame( const std::shared_ptr<PCB_SHAPE>& a, const std::shared_ptr<PCB_SHAPE>& b )
+bool primitivesNeedUpdate( const std::shared_ptr<PCB_SHAPE>& a,
+                           const std::shared_ptr<PCB_SHAPE>& b )
 {
     TEST( a->GetShape(), b->GetShape() );
 
@@ -121,11 +122,11 @@ bool primitivesSame( const std::shared_ptr<PCB_SHAPE>& a, const std::shared_ptr<
     TEST( a->GetWidth(), b->GetWidth() );
     TEST( a->IsFilled(), b->IsFilled() );
 
-    return true;
+    return false;
 }
 
 
-bool padsSame( PAD* a, PAD* b )
+bool padsNeedUpdate( const PAD* a, const PAD* b )
 {
     TEST( a->GetPadToDieLength(), b->GetPadToDieLength() );
     TEST( a->GetPos0(), b->GetPos0() );
@@ -135,7 +136,10 @@ bool padsSame( PAD* a, PAD* b )
     TEST( a->GetPinType(), b->GetPinType() );
 
     TEST( a->GetRemoveUnconnected(), b->GetRemoveUnconnected() );
-    TEST( a->GetKeepTopBottom(), b->GetKeepTopBottom() );
+
+    // NB: KeepTopBottom is undefined if RemoveUnconnected is NOT set.
+    if( a->GetRemoveUnconnected() )
+        TEST( a->GetKeepTopBottom(), b->GetKeepTopBottom() );
 
     TEST( a->GetShape(), b->GetShape() );
     TEST( a->GetLayerSet(), b->GetLayerSet() );
@@ -173,11 +177,11 @@ bool padsSame( PAD* a, PAD* b )
     for( size_t ii = 0; ii < a->GetPrimitives().size(); ++ii )
         TEST_PRIMITIVES( a->GetPrimitives()[ii], b->GetPrimitives()[ii] );
 
-    return true;
+    return false;
 }
 
 
-bool shapesSame( FP_SHAPE* a, FP_SHAPE* b )
+bool shapesNeedUpdate( const FP_SHAPE* a, const FP_SHAPE* b )
 {
     TEST( a->GetShape(), b->GetShape() );
 
@@ -221,11 +225,11 @@ bool shapesSame( FP_SHAPE* a, FP_SHAPE* b )
 
     TEST( a->GetLayer(), b->GetLayer() );
 
-    return true;
+    return false;
 }
 
 
-bool textsSame( FP_TEXT* a, FP_TEXT* b )
+bool textsNeedUpdate( const FP_TEXT* a, const FP_TEXT* b )
 {
     TEST( a->GetLayer(), b->GetLayer() );
     TEST( a->IsKeepUpright(), b->IsKeepUpright() );
@@ -245,11 +249,11 @@ bool textsSame( FP_TEXT* a, FP_TEXT* b )
     TEST( a->GetTextSize(), b->GetTextSize() );
     TEST( a->GetPos0(), b->GetPos0() );
 
-    return true;
+    return false;
 }
 
 
-bool zonesSame( FP_ZONE* a, FP_ZONE* b )
+bool zonesNeedUpdate( const FP_ZONE* a, const FP_ZONE* b )
 {
     TEST( a->GetCornerSmoothingType(), b->GetCornerSmoothingType() );
     TEST( a->GetCornerRadius(), b->GetCornerRadius() );
@@ -293,17 +297,17 @@ bool zonesSame( FP_ZONE* a, FP_ZONE* b )
               b->Outline()->CVertex( ii ) - b->GetParent()->GetPosition() );
     }
 
-    return true;
+    return false;
 }
 
 
-bool modelsSame( FP_3DMODEL& a, FP_3DMODEL& b )
+bool modelsNeedUpdate( const FP_3DMODEL& a, const FP_3DMODEL& b )
 {
 #define EPSILON 0.000001
 #define TEST_V3D( a, b ) { if( abs( a.x - b.x ) > EPSILON    \
                             || abs( a.y - b.y ) > EPSILON    \
                             || abs( a.z - b.z ) > EPSILON )  \
-                               return false;                 }
+                               return true;                  }
 
     TEST_V3D( a.m_Scale, b.m_Scale );
     TEST_V3D( a.m_Rotation, b.m_Rotation );
@@ -312,25 +316,25 @@ bool modelsSame( FP_3DMODEL& a, FP_3DMODEL& b )
     TEST( a.m_Filename, b.m_Filename );
     TEST( a.m_Show, b.m_Show );
 
-    return true;
+    return false;
 }
 
 
-bool footprintsSame( std::shared_ptr<FOOTPRINT>& a, FOOTPRINT* b )
+bool FOOTPRINT::FootprintNeedsUpdate( const FOOTPRINT* aLibFootprint )
 {
-    TEST( a->GetDescription(), b->GetDescription() );
-    TEST( a->GetKeywords(), b->GetKeywords() );
-    TEST( a->GetAttributes(), b->GetAttributes() );
+    TEST( GetDescription(), aLibFootprint->GetDescription() );
+    TEST( GetKeywords(), aLibFootprint->GetKeywords() );
+    TEST( GetAttributes(), aLibFootprint->GetAttributes() );
 
-    TEST( a->GetPlacementCost90(), b->GetPlacementCost90() );
-    TEST( a->GetPlacementCost180(), b->GetPlacementCost180() );
+    TEST( GetPlacementCost90(), aLibFootprint->GetPlacementCost90() );
+    TEST( GetPlacementCost180(), aLibFootprint->GetPlacementCost180() );
 
-    TEST( a->GetLocalClearance(), b->GetLocalClearance() );
-    TEST( a->GetLocalSolderMaskMargin(), b->GetLocalSolderMaskMargin() );
-    TEST( a->GetLocalSolderPasteMargin(), b->GetLocalSolderPasteMargin() );
-    TEST( a->GetLocalSolderPasteMarginRatio(), b->GetLocalSolderPasteMarginRatio() );
+    TEST( GetLocalClearance(), aLibFootprint->GetLocalClearance() );
+    TEST( GetLocalSolderMaskMargin(), aLibFootprint->GetLocalSolderMaskMargin() );
+    TEST( GetLocalSolderPasteMargin(), aLibFootprint->GetLocalSolderPasteMargin() );
+    TEST( GetLocalSolderPasteMarginRatio(), aLibFootprint->GetLocalSolderPasteMarginRatio() );
 
-    TEST( a->GetZoneConnection(), b->GetZoneConnection() );
+    TEST( GetZoneConnection(), aLibFootprint->GetZoneConnection() );
 
     // Text items are really problematic.  We don't want to test the reference, but after that
     // it gets messy.  What about the value?  Depends on whether or not it's a singleton part.
@@ -343,25 +347,25 @@ bool footprintsSame( std::shared_ptr<FOOTPRINT>& a, FOOTPRINT* b )
     // algorithm we use the footprint sorting functions to attempt to sort them in the same order.
 
     std::set<BOARD_ITEM*, FOOTPRINT::cmp_drawings> aShapes;
-    std::copy_if( a->GraphicalItems().begin(), a->GraphicalItems().end(),
+    std::copy_if( GraphicalItems().begin(), GraphicalItems().end(),
                   std::inserter( aShapes, aShapes.begin() ),
                   []( BOARD_ITEM* item )
                   {
                       return item->Type() == PCB_FP_SHAPE_T;
                   } );
     std::set<BOARD_ITEM*, FOOTPRINT::cmp_drawings> bShapes;
-    std::copy_if( b->GraphicalItems().begin(), b->GraphicalItems().end(),
+    std::copy_if( aLibFootprint->GraphicalItems().begin(), aLibFootprint->GraphicalItems().end(),
                   std::inserter( bShapes, bShapes.begin() ),
                   []( BOARD_ITEM* item )
                   {
                       return item->Type() == PCB_FP_SHAPE_T;
                   } );
 
-    std::set<PAD*, FOOTPRINT::cmp_pads> aPads( a->Pads().begin(), a->Pads().end() );
-    std::set<PAD*, FOOTPRINT::cmp_pads> bPads( b->Pads().begin(), b->Pads().end() );
+    std::set<PAD*, FOOTPRINT::cmp_pads> aPads( Pads().begin(), Pads().end() );
+    std::set<PAD*, FOOTPRINT::cmp_pads> bPads( aLibFootprint->Pads().begin(), aLibFootprint->Pads().end() );
 
-    std::set<FP_ZONE*, FOOTPRINT::cmp_zones> aZones( a->Zones().begin(), a->Zones().end() );
-    std::set<FP_ZONE*, FOOTPRINT::cmp_zones> bZones( b->Zones().begin(), b->Zones().end() );
+    std::set<FP_ZONE*, FOOTPRINT::cmp_zones> aZones( Zones().begin(), Zones().end() );
+    std::set<FP_ZONE*, FOOTPRINT::cmp_zones> bZones( aLibFootprint->Zones().begin(), aLibFootprint->Zones().end() );
 
     TEST( aPads.size(), bPads.size() );
     TEST( aZones.size(), bZones.size() );
@@ -379,12 +383,12 @@ bool footprintsSame( std::shared_ptr<FOOTPRINT>& a, FOOTPRINT* b )
     for( auto aIt = aZones.begin(), bIt = bZones.begin(); aIt != aZones.end(); aIt++, bIt++ )
         TEST_ZONES( *aIt, *bIt );
 
-    TEST( a->Models().size(), b->Models().size() );
+    TEST( Models().size(), aLibFootprint->Models().size() );
 
-    for( size_t ii = 0; ii < a->Models().size(); ++ii )
-        TEST_MODELS( a->Models()[ii], b->Models()[ii] );
+    for( size_t ii = 0; ii < Models().size(); ++ii )
+        TEST_MODELS( Models()[ii], aLibFootprint->Models()[ii] );
 
-    return true;
+    return false;
 }
 
 
@@ -487,7 +491,7 @@ bool DRC_TEST_PROVIDER_LIBRARY_PARITY::Run()
             drcItem->SetItems( footprint );
             reportViolation( drcItem, footprint->GetCenter() );
         }
-        else if( !footprintsSame( libFootprint, footprint ) )
+        else if( footprint->FootprintNeedsUpdate( libFootprint.get() ) )
         {
             std::shared_ptr<DRC_ITEM> drcItem = DRC_ITEM::Create( DRCE_LIB_FOOTPRINT_ISSUES );
             msg.Printf( "Footprint '%s' does not match copy in library '%s'.",

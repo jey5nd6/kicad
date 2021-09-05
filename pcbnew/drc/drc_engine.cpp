@@ -42,6 +42,11 @@
 #include <geometry/shape_null.h>
 
 
+// wxListBox's performance degrades horrifically with very large datasets.  It's not clear
+// they're useful to the user anyway.
+#define ERROR_LIMIT_MAX 199
+
+
 void drcPrintDebugMessage( int level, const wxString& msg, const char *function, int line )
 {
     wxString valueStr;
@@ -73,7 +78,7 @@ DRC_ENGINE::DRC_ENGINE( BOARD* aBoard, BOARD_DESIGN_SETTINGS *aSettings ) :
     m_errorLimits.resize( DRCE_LAST + 1 );
 
     for( int ii = DRCE_FIRST; ii <= DRCE_LAST; ++ii )
-        m_errorLimits[ ii ] = INT_MAX;
+        m_errorLimits[ ii ] = ERROR_LIMIT_MAX;
 }
 
 
@@ -480,86 +485,6 @@ void DRC_ENGINE::loadImplicitRules()
 }
 
 
-static wxString formatConstraint( const DRC_CONSTRAINT& constraint )
-{
-    struct FORMATTER
-    {
-        DRC_CONSTRAINT_T type;
-        wxString         name;
-        std::function<wxString(const DRC_CONSTRAINT&)> formatter;
-    };
-
-    auto formatMinMax =
-            []( const DRC_CONSTRAINT& c ) -> wxString
-            {
-                wxString str;
-                const auto value = c.GetValue();
-
-                if ( value.HasMin() )
-                    str += wxString::Format( " min: %d", value.Min() );
-
-                if ( value.HasOpt() )
-                    str += wxString::Format( " opt: %d", value.Opt() );
-
-                if ( value.HasMax() )
-                    str += wxString::Format( " max: %d", value.Max() );
-
-                return str;
-            };
-
-    auto formatMin =
-            []( const DRC_CONSTRAINT& c ) -> wxString
-            {
-                wxString str;
-                const auto value = c.GetValue();
-
-                if ( value.HasMin() )
-                    str += wxString::Format( " min: %d", value.Min() );
-
-                return str;
-            };
-
-    std::vector<FORMATTER> formats =
-    {
-        { CLEARANCE_CONSTRAINT,           "clearance",           formatMinMax },
-        { HOLE_CLEARANCE_CONSTRAINT,      "hole_clearance",      formatMinMax },
-        { HOLE_TO_HOLE_CONSTRAINT,        "hole_to_hole",        formatMinMax },
-        { EDGE_CLEARANCE_CONSTRAINT,      "edge_clearance",      formatMinMax },
-        { HOLE_SIZE_CONSTRAINT,           "hole_size",           formatMinMax },
-        { COURTYARD_CLEARANCE_CONSTRAINT, "courtyard_clearance", formatMinMax },
-        { SILK_CLEARANCE_CONSTRAINT,      "silk_clearance",      formatMinMax },
-        { TEXT_HEIGHT_CONSTRAINT,         "text_height",         formatMinMax },
-        { TEXT_THICKNESS_CONSTRAINT,      "text_thickness",      formatMinMax },
-        { TRACK_WIDTH_CONSTRAINT,         "track_width",         formatMinMax },
-        { ANNULAR_WIDTH_CONSTRAINT,       "annular_width",       formatMinMax },
-        { ZONE_CONNECTION_CONSTRAINT,     "zone_connection",     nullptr      },
-        { THERMAL_RELIEF_GAP_CONSTRAINT,  "thermal_relief_gap",  formatMinMax },
-        { THERMAL_SPOKE_WIDTH_CONSTRAINT, "thermal_spoke_width", formatMinMax },
-        { MIN_RESOLVED_SPOKES_CONSTRAINT, "min_resolved_spokes", formatMin    },
-        { DISALLOW_CONSTRAINT,            "disallow",            nullptr      },
-        { VIA_DIAMETER_CONSTRAINT,        "via_diameter",        formatMinMax },
-        { LENGTH_CONSTRAINT,              "length",              formatMinMax },
-        { SKEW_CONSTRAINT,                "skew",                formatMinMax },
-        { VIA_COUNT_CONSTRAINT,           "via_count",           formatMinMax }
-    };
-
-    for( FORMATTER& fmt : formats )
-    {
-        if( fmt.type == constraint.m_Type )
-        {
-            wxString rv = fmt.name + " ";
-
-            if( fmt.formatter )
-                rv += fmt.formatter( constraint );
-
-            return rv;
-        }
-    }
-
-    return "?";
-}
-
-
 void DRC_ENGINE::loadRules( const wxFileName& aPath )
 {
     if( aPath.FileExists() )
@@ -587,43 +512,28 @@ void DRC_ENGINE::compileRules()
 {
     ReportAux( wxString::Format( "Compiling Rules (%d rules): ", (int) m_rules.size() ) );
 
-    std::set<DRC_CONSTRAINT_T> constraintTypes;
-
-    for( DRC_TEST_PROVIDER* provider : m_testProviders )
+    for( DRC_RULE* rule : m_rules )
     {
-        for( DRC_CONSTRAINT_T constraintType : provider->GetConstraintTypes() )
-            constraintTypes.insert( constraintType );
-    }
+        DRC_RULE_CONDITION* condition = nullptr;
 
-    for( DRC_CONSTRAINT_T constraintType : constraintTypes )
-    {
-        if( m_constraintMap.find( constraintType ) == m_constraintMap.end() )
-            m_constraintMap[ constraintType ] = new std::vector<DRC_ENGINE_CONSTRAINT*>();
-
-        for( DRC_RULE* rule : m_rules )
+        if( rule->m_Condition && !rule->m_Condition->GetExpression().IsEmpty() )
         {
-            DRC_RULE_CONDITION* condition = nullptr;
+            condition = rule->m_Condition;
+            condition->Compile( nullptr );
+        }
 
-            if( rule->m_Condition && !rule->m_Condition->GetExpression().IsEmpty() )
-            {
-                condition = rule->m_Condition;
-                condition->Compile( nullptr, 0, 0 ); // fixme
-            }
+        for( const DRC_CONSTRAINT& constraint : rule->m_Constraints )
+        {
+            if( !m_constraintMap.count( constraint.m_Type ) )
+                m_constraintMap[ constraint.m_Type ] = new std::vector<DRC_ENGINE_CONSTRAINT*>();
 
-            for( const DRC_CONSTRAINT& constraint : rule->m_Constraints )
-            {
-                if( constraint.m_Type == constraintType )
-                {
-                    DRC_ENGINE_CONSTRAINT* engineConstraint = new DRC_ENGINE_CONSTRAINT;
+            DRC_ENGINE_CONSTRAINT* engineConstraint = new DRC_ENGINE_CONSTRAINT;
 
-                    engineConstraint->layerTest = rule->m_LayerCondition;
-                    engineConstraint->condition = condition;
-
-                    engineConstraint->constraint = constraint;
-                    engineConstraint->parentRule = rule;
-                    m_constraintMap[ constraintType ]->push_back( engineConstraint );
-                }
-            }
+            engineConstraint->layerTest = rule->m_LayerCondition;
+            engineConstraint->condition = condition;
+            engineConstraint->constraint = constraint;
+            engineConstraint->parentRule = rule;
+            m_constraintMap[ constraint.m_Type ]->push_back( engineConstraint );
         }
     }
 }
@@ -679,7 +589,7 @@ void DRC_ENGINE::InitEngine( const wxFileName& aRulePath )
     }
 
     for( int ii = DRCE_FIRST; ii < DRCE_LAST; ++ii )
-        m_errorLimits[ ii ] = INT_MAX;
+        m_errorLimits[ ii ] = ERROR_LIMIT_MAX;
 
     m_rulesValid = true;
 }
@@ -697,7 +607,7 @@ void DRC_ENGINE::RunTests( EDA_UNITS aUnits, bool aReportAllTrackErrors, bool aT
         if( m_designSettings->Ignore( ii ) )
             m_errorLimits[ ii ] = 0;
         else
-            m_errorLimits[ ii ] = INT_MAX;
+            m_errorLimits[ ii ] = ERROR_LIMIT_MAX;
     }
 
     m_board->IncrementTimeStamp();      // Invalidate all caches
@@ -755,15 +665,13 @@ void DRC_ENGINE::RunTests( EDA_UNITS aUnits, bool aReportAllTrackErrors, bool aT
 
     for( DRC_TEST_PROVIDER* provider : m_testProviders )
     {
-        if( !provider->IsEnabled() )
-            continue;
+        if( provider->IsEnabled() )
+        {
+            ReportAux( wxString::Format( "Run DRC provider: '%s'", provider->GetName() ) );
 
-        drc_dbg( 0, "Running test provider: '%s'\n", provider->GetName() );
-
-        ReportAux( wxString::Format( "Run DRC provider: '%s'", provider->GetName() ) );
-
-        if( !provider->Run() )
-            break;
+            if( !provider->Run() )
+                break;
+        }
     }
 }
 

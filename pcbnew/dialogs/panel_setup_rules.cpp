@@ -196,7 +196,10 @@ void PANEL_SETUP_RULES::onScintillaCharAdded( wxStyledTextEvent &aEvent )
 
                 if( sexprs.size() && ( sexprs.top() == "constraint"
                                     || sexprs.top() == "disallow"
-                                    || sexprs.top() == "layer" ) )
+                                    || sexprs.top() == "layer"
+                                    || sexprs.top() == "min_resolved_spokes"
+                                    || sexprs.top() == "zone_connection"
+                                    || sexprs.top() == "severity" ) )
                 {
                     partial = wxEmptyString;
                     context = SEXPR_TOKEN;
@@ -225,7 +228,8 @@ void PANEL_SETUP_RULES::onScintillaCharAdded( wxStyledTextEvent &aEvent )
         {
             tokens = "condition "
                      "constraint "
-                     "layer";
+                     "layer "
+                     "severity";
         }
         else if( sexprs.top() == "constraint" )
         {
@@ -303,6 +307,13 @@ void PANEL_SETUP_RULES::onScintillaCharAdded( wxStyledTextEvent &aEvent )
             tokens = "inner "
                      "outer "
                      "\"x\"";
+        }
+        else if( sexprs.top() == "severity" )
+        {
+            tokens = "error "
+                     "exclusion "
+                     "ignore "
+                     "warning";
         }
     }
     else if( context == STRING && !sexprs.empty() && sexprs.top() == "condition" )

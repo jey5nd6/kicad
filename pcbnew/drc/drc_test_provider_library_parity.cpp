@@ -66,8 +66,6 @@ public:
     {
         return "Performs board footprint vs library integity checks";
     }
-
-    virtual std::set<DRC_CONSTRAINT_T> GetConstraintTypes() const override;
 };
 
 
@@ -504,12 +502,6 @@ bool DRC_TEST_PROVIDER_LIBRARY_PARITY::Run()
     }
 
     return true;
-}
-
-
-std::set<DRC_CONSTRAINT_T> DRC_TEST_PROVIDER_LIBRARY_PARITY::GetConstraintTypes() const
-{
-    return {};
 }
 
 

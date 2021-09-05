@@ -238,7 +238,7 @@ void DIALOG_PLOT::reInitDialog()
 
     for( PCB_MARKER* marker : m_parent->GetBoard()->Markers() )
     {
-        if( marker->IsExcluded() )
+        if( marker->GetSeverity() == RPT_SEVERITY_EXCLUSION )
             exclusions++;
         else
             knownViolations++;
